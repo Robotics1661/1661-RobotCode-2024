@@ -4,7 +4,16 @@
 
 package frc.robot;
 
-import frc.robot.GamePieceMode;
+import java.util.Locale;
+
+import com.swervedrivespecialties.swervelib.MkSwerveModuleBuilder;
+import com.swervedrivespecialties.swervelib.MotorType;
+import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
+import com.swervedrivespecialties.swervelib.SwerveModule;
+
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -30,41 +39,98 @@ public final class Constants {
 
     public static final int DRIVETRAIN_PIGEON_ID = 31; // DONE Set Pigeon ID ~~(NO pigeon, use navx)~~ we are using pigeon now
 
-    public static final int FRONT_LEFT_MODULE_DRIVE_MOTOR = 11; // DONE Set front left module drive motor ID
-    public static final int FRONT_LEFT_MODULE_STEER_MOTOR = 17; // DONE Set front left module steer motor ID
-    public static final int FRONT_LEFT_MODULE_STEER_ENCODER = 23; // DONE Set front left steer encoder ID
-    public static final double FRONT_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(117.94921875000001); // DONE Measure and set front left steer offset
+    //public static final int PCM = 30; //pneumatics control module
 
-    public static final int FRONT_RIGHT_MODULE_DRIVE_MOTOR = 19; // DONE Set front right drive motor ID
-    public static final int FRONT_RIGHT_MODULE_STEER_MOTOR = 7; // DONE Set front right steer motor ID
-    public static final int FRONT_RIGHT_MODULE_STEER_ENCODER = 24; // DONE Set front right steer encoder ID
-    public static final double FRONT_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(116.3671875); // DONE Measure and set front right steer offset
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.NONE;
 
-    public static final int BACK_LEFT_MODULE_DRIVE_MOTOR = 6; // DONE Set back left drive motor ID
-    public static final int BACK_LEFT_MODULE_STEER_MOTOR = 8; // DONE Set back left steer motor ID
-    public static final int BACK_LEFT_MODULE_STEER_ENCODER = 22; // DONE Set back left steer encoder ID
-    public static final double BACK_LEFT_MODULE_STEER_OFFSET = -Math.toRadians(27.7734375); // DONE Measure and set back left steer offset
+    public static enum SwerveModuleConfig {
+        FRONT_LEFT(
+            11,
+            17,
+            23,
+            -Math.toRadians(117.94921875000001), // Steer offset
+            0, 0
+        ),
+        FRONT_RIGHT(
+            19,
+            7,
+            24,
+            -Math.toRadians(116.3671875), // Steer offset
+            2, 0
+        ),
+        BACK_LEFT(
+            6,
+            8,
+            22,
+            -Math.toRadians(27.7734375), // Steer offset
+            4, 0
+        ),
+        BACK_RIGHT(
+            5,
+            12,
+            21,
+            -Math.toRadians(154.599609375), // Steer offset
+            6, 0
+        )
+        ;
+        public final int driveMotor;
+        public final int steerMotor;
+        public final int steerEncoder;
+        public final double steerOffset;
+        private final int shuffleboardColumn;
+        private final int shuffleboardRow;
+        private boolean moduleInitialized = false;
 
-    public static final int BACK_RIGHT_MODULE_DRIVE_MOTOR = 5; // DONE Set back right drive motor ID
-    public static final int BACK_RIGHT_MODULE_STEER_MOTOR = 12; // DONE Set back right steer motor ID
-    public static final int BACK_RIGHT_MODULE_STEER_ENCODER = 21; // DONE Set back right steer encoder ID
-    public static final double BACK_RIGHT_MODULE_STEER_OFFSET = -Math.toRadians(154.599609375); // DONE Measure and set back right steer offset
+        private SwerveModuleConfig(int driveMotor, int steerMotor, int steerEncoder, double steerOffset,
+                int shuffleboardColumn, int shuffleboardRow) {
+            this.driveMotor = driveMotor;
+            this.steerMotor = steerMotor;
+            this.steerEncoder = steerEncoder;
+            this.steerOffset = steerOffset;
+            this.shuffleboardColumn = shuffleboardColumn;
+            this.shuffleboardRow = shuffleboardRow;
+        }
 
-    public static final int PCM = 30; //pneumatics control module
-    public static final int ELBOW_MOTOR = 40;
-    public static final int SHOULDER_MOTOR = 41;
-    public static final double ELBOW_MAX_SPEED = -0.35; //percent (flipped)
-    public static final double SHOULDER_MAX_SPEED = -0.35; //percent (flipped)
+        private String humanName() {
+            String[] pieces = this.name().split("_");
+            StringBuilder out = new StringBuilder();
+            boolean first = true;
+            for (String piece : pieces) {
+                if (first) {
+                    first = false;
+                } else {
+                    out.append(' ');
+                }
+                out.append(piece.substring(0, 1).toUpperCase(Locale.ROOT));
+                out.append(piece.substring(1).toLowerCase(Locale.ROOT));
+            }
+            return out.toString();
+        }
 
-    public static final int SOLENOID_6_INCH_FORWARD = 2;
-    public static final int SOLENOID_6_INCH_REVERSE = 3;
-    public static final int SOLENOID_7_INCH_FORWARD = 6;
-    public static final int SOLENOID_7_INCH_REVERSE = 7;
+        public SwerveModule create() {
+            if (moduleInitialized) {
+                System.out.println("WARNING: Swerve module {} initalized twice!".formatted(this));
+            }
+            moduleInitialized = true;
 
-    public static final int CONE_BUTTON = 5;
-    public static final int CUBE_BUTTON = 6;
-    public static final int RELEASE_BUTTON = 2;
+            ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.FULL_20_POINT;
-    public static final GamePieceMode GAME_PIECE_MODE = GamePieceMode.CUBE; // which game piece Full20Point auto should use
+            return new MkSwerveModuleBuilder()
+                .withGearRatio(SdsModuleConfigurations.MK4_L1)
+                // ID of the drive motor
+                .withDriveMotor(MotorType.FALCON, driveMotor)
+                // ID of the steer motor
+                .withSteerMotor(MotorType.FALCON, steerMotor)
+                // ID of the steer encoder
+                .withSteerEncoderPort(steerEncoder)
+                // This is how much the steer encoder is offset from true zero (In our case, zero is facing straight forward)
+                .withSteerOffset(steerOffset)
+                // Shuffleboard state
+                .withLayout(tab
+                        .getLayout(this.humanName() + " Module", BuiltInLayouts.kList)
+                        .withSize(2, 4)
+                        .withPosition(shuffleboardColumn, shuffleboardRow)
+                ).build();
+        }
+    }
 }

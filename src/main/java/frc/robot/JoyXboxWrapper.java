@@ -21,10 +21,6 @@ public class JoyXboxWrapper {
         m_soft_disabled = controllerMode;
     }
 
-    public boolean getBalance() {
-        return getFlightButton(4);
-    }
-
     public boolean getBypassLimitButton() {
         return getFlightButton(11);
     }
@@ -59,18 +55,6 @@ public class JoyXboxWrapper {
     public double getShoulderRotation() {
         if (isSoftDisabled()) return 0;
         return swapElbowShoulderSticks ? m_xbox.getRightY() : m_xbox.getLeftY();
-    }
-
-    public boolean getClawCone() {
-        return getFlightButton(Constants.CONE_BUTTON);
-    }
-    
-    public boolean getClawCube() {
-        return getFlightButton(Constants.CUBE_BUTTON);
-    }
-
-    public boolean getClawRelease() {
-        return getFlightButton(Constants.RELEASE_BUTTON);
     }
 
     public boolean getClawOff() {

@@ -1,5 +1,6 @@
 package frc.robot.util;
 
+// TODO: do we actually need this?
 public class SensorConverter {
     /*private double sensor_small = 29467;
     private double degrees_small = 90;
@@ -50,6 +51,7 @@ public class SensorConverter {
         this.difference_degrees = this.degrees_big - this.degrees_small;
     }
 
+    @SuppressWarnings("unused")
     private double toSensorUnits(double degrees) {
         return degrees * difference_sens / difference_degrees;
     }

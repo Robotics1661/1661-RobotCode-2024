@@ -4,26 +4,22 @@
 
 package frc.robot.subsystems;
 
+import static frc.robot.Constants.DRIVETRAIN_PIGEON_ID;
+import static frc.robot.Constants.DRIVETRAIN_TRACKWIDTH_METERS;
+import static frc.robot.Constants.DRIVETRAIN_WHEELBASE_METERS;
+
 import com.ctre.phoenix.sensors.Pigeon2;
-import com.ctre.phoenix.sensors.PigeonIMU;
-import com.ctre.phoenix.sensors.PigeonIMU.PigeonState;
-import com.kauailabs.navx.frc.AHRS;
-import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
 import com.swervedrivespecialties.swervelib.SwerveModule;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import static frc.robot.Constants.*;
+import frc.robot.Constants.SwerveModuleConfig;
 
 public class DrivetrainSubsystem extends SubsystemBase {
   /**
@@ -83,78 +79,12 @@ public class DrivetrainSubsystem extends SubsystemBase {
   private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
   public DrivetrainSubsystem() {
-    ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
-
-    // There are 4 methods you can call to create your swerve modules.
-    // The method you use depends on what motors you are using.
-    //
-    // Mk3SwerveModuleHelper.createFalcon500(...)
-    //   Your module has two Falcon 500s on it. One for steering and one for driving.
-    //
-    // Mk3SwerveModuleHelper.createNeo(...)
-    //   Your module has two NEOs on it. One for steering and one for driving.
-    //
-    // Mk3SwerveModuleHelper.createFalcon500Neo(...)
-    //   Your module has a Falcon 500 and a NEO on it. The Falcon 500 is for driving and the NEO is for steering.
-    //
-    // Mk3SwerveModuleHelper.createNeoFalcon500(...)
-    //   Your module has a NEO and a Falcon 500 on it. The NEO is for driving and the Falcon 500 is for steering.
-    //
-    // Similar helpers also exist for Mk4 modules using the Mk4SwerveModuleHelper class.
-
     // By default we will use Falcon 500s in standard configuration. But if you use a different configuration or motors
     // you MUST change it. If you do not, your code will crash on startup.
-    // DONE Setup motor configuration
-    m_frontLeftModule = Mk4iSwerveModuleHelper.createFalcon500(
-            // This parameter is optional, but will allow you to see the current state of the module on the dashboard.
-            tab.getLayout("Front Left Module", BuiltInLayouts.kList)
-                    .withSize(2, 4)
-                    .withPosition(0, 0),
-            // This can either be STANDARD or FAST depending on your gear configuration
-            Mk4iSwerveModuleHelper.GearRatio.L1,
-            // This is the ID of the drive motor
-            FRONT_LEFT_MODULE_DRIVE_MOTOR,
-            // This is the ID of the steer motor
-            FRONT_LEFT_MODULE_STEER_MOTOR,
-            // This is the ID of the steer encoder
-            FRONT_LEFT_MODULE_STEER_ENCODER,
-            // This is how much the steer encoder is offset from true zero (In our case, zero is facing straight forward)
-            FRONT_LEFT_MODULE_STEER_OFFSET
-    );
-
-    // We will do the same for the other modules
-    m_frontRightModule = Mk4iSwerveModuleHelper.createFalcon500(
-            tab.getLayout("Front Right Module", BuiltInLayouts.kList)
-                    .withSize(2, 4)
-                    .withPosition(2, 0),
-            Mk4iSwerveModuleHelper.GearRatio.L1,
-            FRONT_RIGHT_MODULE_DRIVE_MOTOR,
-            FRONT_RIGHT_MODULE_STEER_MOTOR,
-            FRONT_RIGHT_MODULE_STEER_ENCODER,
-            FRONT_RIGHT_MODULE_STEER_OFFSET
-    );
-
-    m_backLeftModule = Mk4iSwerveModuleHelper.createFalcon500(
-            tab.getLayout("Back Left Module", BuiltInLayouts.kList)
-                    .withSize(2, 4)
-                    .withPosition(4, 0),
-            Mk4iSwerveModuleHelper.GearRatio.L1,
-            BACK_LEFT_MODULE_DRIVE_MOTOR,
-            BACK_LEFT_MODULE_STEER_MOTOR,
-            BACK_LEFT_MODULE_STEER_ENCODER,
-            BACK_LEFT_MODULE_STEER_OFFSET
-    );
-
-    m_backRightModule = Mk4iSwerveModuleHelper.createFalcon500(
-            tab.getLayout("Back Right Module", BuiltInLayouts.kList)
-                    .withSize(2, 4)
-                    .withPosition(6, 0),
-            Mk4iSwerveModuleHelper.GearRatio.L1,
-            BACK_RIGHT_MODULE_DRIVE_MOTOR,
-            BACK_RIGHT_MODULE_STEER_MOTOR,
-            BACK_RIGHT_MODULE_STEER_ENCODER,
-            BACK_RIGHT_MODULE_STEER_OFFSET
-    );
+    m_frontLeftModule = SwerveModuleConfig.FRONT_LEFT.create();
+    m_frontRightModule = SwerveModuleConfig.FRONT_RIGHT.create();
+    m_backLeftModule = SwerveModuleConfig.BACK_LEFT.create();
+    m_backRightModule = SwerveModuleConfig.BACK_RIGHT.create();
   }
 
   /**
@@ -194,26 +124,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
         return ypr;
   }
 
-  public double getChargeStationPitch() {
-        double[] ypr = getFullGyroscopeRotation();
-        double yaw = ypr[0];
-        double pitch = ypr[1];
-        double roll = ypr[2];
-        SmartDashboard.putNumber("robotYaw", yaw);
-        SmartDashboard.putNumber("robotPitch", pitch);
-        SmartDashboard.putNumber("robotRoll", roll);
-
-        double yaw_Rad = Math.toRadians(yaw);
-        double pitch_Rad = Math.toRadians(pitch);
-        double roll_Rad = Math.toRadians(roll);
-
-        // sin(yaw)*pitch + cos(yaw)*roll // sin and cos might be flipped
-        double chargePitch_Rad = Math.sin(yaw_Rad)*pitch_Rad + Math.cos(yaw_Rad) * roll_Rad;
-        double chargePitch = Math.toDegrees(chargePitch_Rad);
-        SmartDashboard.putNumber("chargePitch", chargePitch);
-        return chargePitch;
-  }
-
   public Rotation2d getGyroscopeRotation() {
     if (m_pigeon.getUpTime() > 5) {//m_navx.isMagnetometerCalibrated()) {
         SmartDashboard.putBoolean("gyroReady", true);
@@ -246,9 +156,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
     if (SmartDashboard.getBoolean("gyroReset", false)) {
         SmartDashboard.putBoolean("gyroReset", false);
         zeroGyroscope();
-    } //TODO test this
+    }
     SmartDashboard.putNumber("gyro", getGyroscopeRotation().getDegrees());
-    double chargePitch = getChargeStationPitch();
 //    SmartDashboard.putNumber("gravityCombined", Math.sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]));
   }
   
