@@ -1,6 +1,6 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.DrivetrainSubsystem;
 
@@ -28,17 +28,17 @@ public enum AutonomousMode {
         this.description = description;
     }*/
 
-    public CommandBase getCommand(DrivetrainSubsystem drivetrainSubsystem/*, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem*/) {
+    public Command getCommand(DrivetrainSubsystem drivetrainSubsystem/*, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem*/) {
         return this.builder.create(drivetrainSubsystem/*, armSubsystem, clawSubsystem*/);
     }
 
     @FunctionalInterface
     interface SimpleCommandBuilder {
-        public CommandBase create(DrivetrainSubsystem drivetrainSubsystem);
+        public Command create(DrivetrainSubsystem drivetrainSubsystem);
     }
 
     /*@FunctionalInterface
     interface CommandBuilder {
-        public CommandBase create(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem);
+        public Command create(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem);
     }*/
 }

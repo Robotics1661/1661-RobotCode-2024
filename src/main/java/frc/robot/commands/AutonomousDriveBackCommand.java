@@ -2,10 +2,10 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DrivetrainSubsystem;
 
-public class AutonomousDriveBackCommand extends CommandBase {
+public class AutonomousDriveBackCommand extends Command {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
 
