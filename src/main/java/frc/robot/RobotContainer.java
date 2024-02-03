@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -84,16 +85,16 @@ public class RobotContainer {
   }
 
   private double modifyAxis(double value, String label, boolean square) {
-    //SmartDashboard.putNumber("controller_"+label+"_raw", value);
+    SmartDashboard.putNumber("controller_"+label+"_raw", value);
     // Deadband
     value = deadband(value, m_combined_controller.isSoftDisabled() ? 0.2 : 0.1); // was 0.05
-    //SmartDashboard.putNumber("controller_"+label+"_db_cor", value);
+    SmartDashboard.putNumber("controller_"+label+"_db_cor", value);
 
     if (square) {
       // Square the axis
       value = Math.copySign(value * value, value);
 
-      //SmartDashboard.putNumber("controller_"+label+"_sq", value);
+      SmartDashboard.putNumber("controller_"+label+"_sq", value);
     }
 
     return value;
