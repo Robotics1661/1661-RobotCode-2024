@@ -8,7 +8,7 @@ import static frc.robot.Constants.DRIVETRAIN_PIGEON_ID;
 import static frc.robot.Constants.DRIVETRAIN_TRACKWIDTH_METERS;
 import static frc.robot.Constants.DRIVETRAIN_WHEELBASE_METERS;
 
-import com.ctre.phoenix.sensors.Pigeon2;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 
@@ -92,20 +92,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
    * 'forwards' direction.
    */
   public void zeroGyroscope() {
-        m_pigeon.zeroGyroBiasNow();
-    // DONE Remove if you are using a Pigeon
-//    m_pigeon.setFusedHeading(0.0);
-
-    // DONE Uncomment if you are using a NavX
     SmartDashboard.putNumber("zero_times", SmartDashboard.getNumber("zero_times", 0)+1);
-    //m_navx.zeroYaw();
-    //m_pigeon.zeroGyroBiasNow();
-//    m_pigeon.zeroGyroBiasNow();
     m_pigeon.setYaw(0);
   }
 
   public void calibrateGyro() {
-        m_pigeon.zeroGyroBiasNow();
         zeroGyroscope();
         //m_navx.calibrate();
         //m_pigeon.enterCalibrat
@@ -116,24 +107,16 @@ public class DrivetrainSubsystem extends SubsystemBase {
         m_pigeon.setYaw(180);
   }
 
-  public double[] getFullGyroscopeRotation() {
-        double[] ypr = new double[3];
-        m_pigeon.getYawPitchRoll(ypr); //y + z indicate tilt
-//        m_pigeon.getAccumGyro(xyz);
-//        m_pigeon.getGravityVector(xyz); // it is the y that indicates tilt
-        return ypr;
-  }
-
   public Rotation2d getGyroscopeRotation() {
-    if (m_pigeon.getUpTime() > 5) {//m_navx.isMagnetometerCalibrated()) {
+    if (m_pigeon.getUpTime().refresh().getValueAsDouble() > 5) {//m_navx.isMagnetometerCalibrated()) {
         SmartDashboard.putBoolean("gyroReady", true);
       // We will only get valid fused headings if the magnetometer is calibrated
-      return Rotation2d.fromDegrees(m_pigeon.getYaw());//m_navx.getFusedHeading());
+      return Rotation2d.fromDegrees(m_pigeon.getYaw().refresh().getValueAsDouble());//m_navx.getFusedHeading());
     } else {
         SmartDashboard.putBoolean("gyroReady", false);
     }
     // DONE Remove if you are using a Pigeon
-    return Rotation2d.fromDegrees(m_pigeon.getYaw());
+    return Rotation2d.fromDegrees(m_pigeon.getYaw().refresh().getValueAsDouble());
     // DONE Uncomment if you are using a NavX
     // We have to invert the angle of the NavX so that rotating the robot counter-clockwise makes the angle increase.
     //return Rotation2d.fromDegrees(360.0 - m_navx.getYaw());
