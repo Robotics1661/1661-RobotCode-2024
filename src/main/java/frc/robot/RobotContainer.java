@@ -11,7 +11,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DefaultDriveCommand;
+import frc.robot.commands.TestFourBarCommand;
+import frc.robot.commands.sysid.FourBarSysIdCommand;
 import frc.robot.subsystems.DrivetrainSubsystem;
+import frc.robot.subsystems.FourBarSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -21,7 +24,8 @@ import frc.robot.subsystems.DrivetrainSubsystem;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
+  //// private final DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
+  private final FourBarSubsystem m_fourBarSubsystem = new FourBarSubsystem();
 
   //private final XboxController m_controller = new XboxController(0);
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
@@ -35,11 +39,16 @@ public class RobotContainer {
     // Left stick Y axis -> forward and backwards movement
     // Left stick X axis -> left and right movement
     // Right stick X axis -> rotation
-    m_drivetrainSubsystem.setDefaultCommand(new DefaultDriveCommand(
-            m_drivetrainSubsystem,
-            () -> -modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.15
+    /*m_drivetrainSubsystem.setDefaultCommand(new DefaultDriveCommand(
+      m_drivetrainSubsystem,
+      () -> -modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> -modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
+      () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.15
+    ));*/
+
+    m_fourBarSubsystem.setDefaultCommand(new TestFourBarCommand(
+      m_fourBarSubsystem,
+      () -> modifyAxis(m_combined_controller.getElbowRotation(), "four_bar_speed", true)
     ));
 
     // Configure the button bindings
@@ -47,7 +56,7 @@ public class RobotContainer {
   }
 
   public void calibrateGyro() {
-    m_drivetrainSubsystem.calibrateGyro();
+    ////m_drivetrainSubsystem.calibrateGyro();
   }
 
   /**
@@ -58,9 +67,9 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Back button zeros the gyroscope
-    new Trigger(m_combined_controller::getZeroButton)
+    /*new Trigger(m_combined_controller::getZeroButton) ////
       // No requirements because we don't need to interrupt anything
-      .onTrue(new InstantCommand(m_drivetrainSubsystem::zeroGyroscope));
+      .onTrue(new InstantCommand(m_drivetrainSubsystem::zeroGyroscope));*/
   }
 
   /**
@@ -69,7 +78,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem);
+    return null; ////Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem);
   }
 
   private static double deadband(double value, double deadband) {
@@ -98,5 +107,9 @@ public class RobotContainer {
     }
 
     return value;
+  }
+
+  public Command fourBarSysIdCommand() {
+    return FourBarSysIdCommand.create(m_fourBarSubsystem, () -> m_combined_controller.getFlightButton(11));
   }
 }
