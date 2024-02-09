@@ -1,6 +1,8 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DrivetrainSubsystem;
@@ -8,6 +10,11 @@ import frc.robot.subsystems.DrivetrainSubsystem;
 public class AutonomousDriveBackCommand extends Command {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
+
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+                                                               // driving in open loop
+  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
     public AutonomousDriveBackCommand(DrivetrainSubsystem drivetrainSubsystem) {
         this.m_startTime = Timer.getFPGATimestamp(); //just as a failsafe
@@ -26,7 +33,7 @@ public class AutonomousDriveBackCommand extends Command {
     @Override
     public void initialize() {
         m_startTime = Timer.getFPGATimestamp();
-        m_drivetrainSubsystem.calibrateGyro();
+        m_drivetrainSubsystem.seedFieldRelative();
     }
 
     private boolean shouldMove() {
@@ -37,14 +44,8 @@ public class AutonomousDriveBackCommand extends Command {
     public void execute() {
         if (!shouldMove()) return; //failsafe, should finalize
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
-        m_drivetrainSubsystem.drive(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        .8,
-                        0,
-                        0,
-                        m_drivetrainSubsystem.getGyroscopeRotation()
-                )
-                
+        m_drivetrainSubsystem.applyRequest(() -> drive
+           .withVelocityX(0.8)
         );
     }
 
@@ -55,6 +56,6 @@ public class AutonomousDriveBackCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        m_drivetrainSubsystem.drive(new ChassisSpeeds(0.0, 0.0, 0.0));
+        m_drivetrainSubsystem.applyRequest(() -> brake);
     }
 }

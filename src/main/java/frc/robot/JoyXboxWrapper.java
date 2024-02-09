@@ -21,7 +21,7 @@ public class JoyXboxWrapper {
     }
 
     public double getLateralX() {
-        return 0;//isSoftDisabled() ? 0 : m_joystick.getX();
+        return isSoftDisabled() ? 0 : m_joystick.getX();
     }
 
     public double getLateralY() {
@@ -42,17 +42,21 @@ public class JoyXboxWrapper {
         return getFlightButton(7);
     }
 
-    public double getFourBarSpeed() {
-        if (isSoftDisabled()) return 0;
-        return m_xbox.getRightY();
+    public boolean getBrakeButton() {
+        return getFlightButton(9);
     }
 
-    public boolean getTestFourBar() {
+    public boolean getSysIdSafety() {
         return getFlightButton(11);
     }
 
     public boolean getIntake() {
-        return getFlightButton(12);
+        return getFlightButton(5);
+    }
+
+    public double getFourBarSpeed() {
+        if (isSoftDisabled()) return 0;
+        return m_xbox.getRightY();
     }
 
     public void softDisable() {

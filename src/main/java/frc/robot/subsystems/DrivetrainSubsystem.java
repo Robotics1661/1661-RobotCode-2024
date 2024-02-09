@@ -1,150 +1,94 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.DRIVETRAIN_PIGEON_ID;
-import static frc.robot.Constants.DRIVETRAIN_TRACKWIDTH_METERS;
-import static frc.robot.Constants.DRIVETRAIN_WHEELBASE_METERS;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
-import com.swervedrivespecialties.swervelib.SwerveModule;
+import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.SwerveModuleConfig;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
-public class DrivetrainSubsystem extends SubsystemBase {
-  /**
-   * The maximum voltage that will be delivered to the drive motors.
-   * <p>
-   * This can be reduced to cap the robot's maximum speed. Typically, this is useful during initial testing of the robot.
-   */
-  public static final double MAX_VOLTAGE = 12.0; //default 12.0
-  // DONE Measure the drivetrain's maximum velocity or calculate the theoretical.
-  //  The formula for calculating the theoretical maximum velocity is:
-  //   <Motor free speed RPM> / 60 * <Drive reduction> * <Wheel diameter meters> * pi
-  //  By default this value is setup for a Mk3 standard module using Falcon500s to drive.
-  //  An example of this constant for a Mk4 L2 module with NEOs to drive is:
-  //   5880.0 / 60.0 / SdsModuleConfigurations.MK4_L2.getDriveReduction() * SdsModuleConfigurations.MK4_L2.getWheelDiameter() * Math.PI
-  /**
-   * The maximum velocity of the robot in meters per second.
-   * <p>
-   * This is a measure of how fast the robot should be able to drive in a straight line.
-   */
-  public static final double MAX_VELOCITY_METERS_PER_SECOND = 6380.0 / 60.0 *
-          SdsModuleConfigurations.MK4I_L1.getDriveReduction() *
-          SdsModuleConfigurations.MK4I_L1.getWheelDiameter() * Math.PI;
-  /**
-   * The maximum angular velocity of the robot in radians per second.
-   * <p>
-   * This is a measure of how fast the robot can rotate in place.
-   */
-  // Here we calculate the theoretical maximum angular velocity. You can also replace this with a measured amount.
-  public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND /
-          Math.hypot(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0);
+/**
+ * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem
+ * so it can be used in command-based projects easily.
+ */
+public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
+    private static final double kSimLoopPeriod = 0.005; // 5 ms
+    private Notifier m_simNotifier = null;
+    private double m_lastSimTime;
 
-  private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
-          // Front left
-          new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-          // Front right
-          new Translation2d(DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0),
-          // Back left
-          new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, DRIVETRAIN_WHEELBASE_METERS / 2.0),
-          // Back right
-          new Translation2d(-DRIVETRAIN_TRACKWIDTH_METERS / 2.0, -DRIVETRAIN_WHEELBASE_METERS / 2.0)
-  );
-
-  // By default we use a Pigeon for our gyroscope. But if you use another gyroscope, like a NavX, you can change this.
-  // The important thing about how you configure your gyroscope is that rotating the robot counter-clockwise should
-  // cause the angle reading to increase until it wraps back over to zero.
-  // DONE Remove if you are using a Pigeon
-  private final Pigeon2 m_pigeon = new Pigeon2(DRIVETRAIN_PIGEON_ID);
-  // DONE Uncomment if you are using a NavX
-  //private final AHRS m_navx = new AHRS(I2C.Port.kMXP, (byte) 200); // NavX connected over MXP
-
-  // These are our modules. We initialize them in the constructor.
-  private final SwerveModule m_frontLeftModule;
-  private final SwerveModule m_frontRightModule;
-  private final SwerveModule m_backLeftModule;
-  private final SwerveModule m_backRightModule;
-
-  private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
-
-  public DrivetrainSubsystem() {
-    // By default we will use Falcon 500s in standard configuration. But if you use a different configuration or motors
-    // you MUST change it. If you do not, your code will crash on startup.
-    m_frontLeftModule = SwerveModuleConfig.FRONT_LEFT.create();
-    m_frontRightModule = SwerveModuleConfig.FRONT_RIGHT.create();
-    m_backLeftModule = SwerveModuleConfig.BACK_LEFT.create();
-    m_backRightModule = SwerveModuleConfig.BACK_RIGHT.create();
-  }
-
-  /**
-   * Sets the gyroscope angle to zero. This can be used to set the direction the robot is currently facing to the
-   * 'forwards' direction.
-   */
-  public void zeroGyroscope() {
-    SmartDashboard.putNumber("zero_times", SmartDashboard.getNumber("zero_times", 0)+1);
-    m_pigeon.setYaw(0);
-  }
-
-  public void calibrateGyro() {
-        zeroGyroscope();
-        //m_navx.calibrate();
-        //m_pigeon.enterCalibrat
-  }
-
-  /* Calibrate gyro to the robot facing backwards */
-  public void calibrateGyro180() {
-        m_pigeon.setYaw(180);
-  }
-
-  public Rotation2d getGyroscopeRotation() {
-    if (m_pigeon.getUpTime().refresh().getValueAsDouble() > 5) {//m_navx.isMagnetometerCalibrated()) {
-        SmartDashboard.putBoolean("gyroReady", true);
-      // We will only get valid fused headings if the magnetometer is calibrated
-      return Rotation2d.fromDegrees(m_pigeon.getYaw().refresh().getValueAsDouble());//m_navx.getFusedHeading());
-    } else {
-        SmartDashboard.putBoolean("gyroReady", false);
+    public DrivetrainSubsystem(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
+        super(driveTrainConstants, OdometryUpdateFrequency, modules);
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
     }
-    // DONE Remove if you are using a Pigeon
-    return Rotation2d.fromDegrees(m_pigeon.getYaw().refresh().getValueAsDouble());
-    // DONE Uncomment if you are using a NavX
-    // We have to invert the angle of the NavX so that rotating the robot counter-clockwise makes the angle increase.
-    //return Rotation2d.fromDegrees(360.0 - m_navx.getYaw());
-  }
-
-  public void drive(ChassisSpeeds chassisSpeeds) {
-    m_chassisSpeeds = chassisSpeeds;
-  }
-
-  @Override
-  public void periodic() {
-    SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
-    SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
-
-    m_frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
-    m_frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
-    m_backLeftModule.set(states[2].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[2].angle.getRadians());
-    m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[3].angle.getRadians());
-
-    if (SmartDashboard.getBoolean("gyroReset", false)) {
-        SmartDashboard.putBoolean("gyroReset", false);
-        zeroGyroscope();
+    public DrivetrainSubsystem(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
+        super(driveTrainConstants, modules);
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
     }
-    SmartDashboard.putNumber("gyro", getGyroscopeRotation().getDegrees());
-//    SmartDashboard.putNumber("gravityCombined", Math.sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]));
-  }
-  
-  public void stop() {
-    drive(new ChassisSpeeds(0.0, 0.0, 0.0));
-  }
+
+    public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
+        return run(() -> this.setControl(requestSupplier.get()));
+    }
+
+    private void startSimThread() {
+        m_lastSimTime = Utils.getCurrentTimeSeconds();
+
+        /* Run simulation at a faster rate so PID gains behave more reasonably */
+        m_simNotifier = new Notifier(() -> {
+            final double currentTime = Utils.getCurrentTimeSeconds();
+            double deltaTime = currentTime - m_lastSimTime;
+            m_lastSimTime = currentTime;
+
+            /* use the measured time delta, get battery voltage from WPILib */
+            updateSimState(deltaTime, RobotController.getBatteryVoltage());
+        });
+        m_simNotifier.startPeriodic(kSimLoopPeriod);
+    }
+
+    private void sysIdSteeringVelocityDrive(Measure<Voltage> voltage) {
+        getModule(0).getSteerMotor().setControl(new VoltageOut(voltage.baseUnitMagnitude()));
+    }
+
+    private void sysIdSteeringLogger(SysIdRoutineLog log) {
+        var logger = log.motor("right");
+        var motor = getModule(0).getSteerMotor();
+        logger.voltage(Units.Volts.of(motor.getMotorVoltage().refresh().getValueAsDouble()));
+        logger.angularVelocity(Units.RotationsPerSecond.of(motor.getVelocity().getValueAsDouble()));
+        logger.angularPosition(Units.Rotations.of(motor.getPosition().getValueAsDouble()));
+        //rightLogger.angularPosition(Units.Meters.ofBaseUnits(m_motorRight.getPosition().refresh().getValueAsDouble()));
+    }
+
+    private SysIdRoutine createSteeringSysIdRoutine() {
+        return new SysIdRoutine(
+            new SysIdRoutine.Config(),
+            new SysIdRoutine.Mechanism(this::sysIdSteeringVelocityDrive, this::sysIdSteeringLogger, this)
+        );
+    }
+
+    public Command getSteeringSysIdCommand(BooleanSupplier safetySupplier) {
+        return new SequentialCommandGroup(
+            createSteeringSysIdRoutine().quasistatic(Direction.kForward),
+            createSteeringSysIdRoutine().quasistatic(Direction.kReverse),
+            createSteeringSysIdRoutine().dynamic(Direction.kForward),
+            createSteeringSysIdRoutine().dynamic(Direction.kReverse)
+        ).onlyWhile(safetySupplier);
+    }
 }

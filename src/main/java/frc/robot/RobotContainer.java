@@ -4,16 +4,23 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
+import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
+import static frc.robot.Constants.SWERVE_MAX_SPEED;
+
+import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.TestFourBarCommand;
 import frc.robot.commands.sysid.FourBarSysIdCommand;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -26,12 +33,21 @@ import frc.robot.subsystems.IntakeSubsystem;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
+  private final DrivetrainSubsystem m_drivetrainSubsystem = TunerConstants.DriveTrain;
   private final FourBarSubsystem m_fourBarSubsystem = new FourBarSubsystem();
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
 
-  //private final XboxController m_controller = new XboxController(0);
+  // Controllers
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
+
+  // Swerve-specific control
+  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(SWERVE_MAX_SPEED * 0.1).withRotationalDeadband(SWERVE_MAX_ANGULAR_RATE * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
+                                                               // driving in open loop
+  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  //private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+  private final Telemetry logger = new Telemetry(SWERVE_MAX_SPEED);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -42,12 +58,13 @@ public class RobotContainer {
     // Left stick Y axis -> forward and backwards movement
     // Left stick X axis -> left and right movement
     // Right stick X axis -> rotation
-    m_drivetrainSubsystem.setDefaultCommand(new DefaultDriveCommand(
-      m_drivetrainSubsystem,
-      () -> -modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-      () -> -modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-      () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.15
+    m_drivetrainSubsystem.setDefaultCommand(m_drivetrainSubsystem.applyRequest(() -> drive
+      .withVelocityX(-modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * SWERVE_MAX_SPEED) // Drive forward
+      .withVelocityY(-modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * SWERVE_MAX_SPEED) // Drive left
+      .withRotationalRate(-modifyAxis(m_combined_controller.getRotation(), "right_x", true) * SWERVE_MAX_ANGULAR_RATE * 0.15) // Spin
     ));
+    new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));
+    new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
 
     m_fourBarSubsystem.setDefaultCommand(new TestFourBarCommand(
       m_fourBarSubsystem,
@@ -58,25 +75,10 @@ public class RobotContainer {
       m_combined_controller::getIntake
     ));
 
-    // Configure the button bindings
-    configureButtonBindings();
-  }
-
-  public void calibrateGyro() {
-    m_drivetrainSubsystem.calibrateGyro();
-  }
-
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
-  private void configureButtonBindings() {
-    // Back button zeros the gyroscope
-    new Trigger(m_combined_controller::getZeroButton)
-      // No requirements because we don't need to interrupt anything
-      .onTrue(new InstantCommand(m_drivetrainSubsystem::zeroGyroscope));
+    if (Utils.isSimulation()) {
+      m_drivetrainSubsystem.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
+    }
+    m_drivetrainSubsystem.registerTelemetry(logger::telemeterize);
   }
 
   /**
@@ -116,7 +118,17 @@ public class RobotContainer {
     return value;
   }
 
-  public Command fourBarSysIdCommand() {
-    return FourBarSysIdCommand.create(m_fourBarSubsystem, m_combined_controller::getTestFourBar);
+  private final SysIdMode SYSID_MODE = SysIdMode.SWERVE_STEERING;
+
+  public Command getSysIdCommand() {
+    return switch (SYSID_MODE) {
+      case FOUR_BAR -> FourBarSysIdCommand.create(m_fourBarSubsystem, m_combined_controller::getSysIdSafety);
+      case SWERVE_STEERING -> m_drivetrainSubsystem.getSteeringSysIdCommand(m_combined_controller::getSysIdSafety);
+    };
+  }
+
+  private enum SysIdMode {
+    FOUR_BAR,
+    SWERVE_STEERING
   }
 }
