@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.FOUR_BAR_LEFT_ID;
 import static frc.robot.Constants.FOUR_BAR_RIGHT_ID;
+import static frc.robot.util.MathUtil.clamp;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
@@ -34,6 +35,7 @@ public class FourBarSubsystem extends SubsystemBase {
     private final DutyCycleOut m_request;
 
     private static final double MAX_VOLTAGE = 2.0;
+    private static final double GEAR_RATIO = 95; // TODO exact
 
     public FourBarSubsystem() {
         m_request = new DutyCycleOut(0);
@@ -72,18 +74,26 @@ public class FourBarSubsystem extends SubsystemBase {
         m_motorRight.setControl(new StaticBrake());
     }
 
-    private static double clamp(double v, double min, double max) {
-        return Math.max(min, Math.min(v, max));
-    }
-
+    /** Get angular velocity of MOTOR */
     private Measure<Velocity<Angle>> getAnglularVelocity() {
         double rawRotPerSecond = m_motorRight.getVelocity().getValueAsDouble();
         return Units.RotationsPerSecond.of(rawRotPerSecond);
     }
 
+    /** Get angle of MOTOR */
     private Measure<Angle> getAngle() {
         double raw = m_motorRight.getPosition().getValueAsDouble();
         return Units.Radians.of(raw * 2 * Math.PI);
+    }
+
+    /** Get angular velocity of ARM */
+    public Measure<Velocity<Angle>> getArmAngularVelocity() {
+        return getAnglularVelocity().divide(GEAR_RATIO);
+    }
+
+    /** Get angle of ARM */
+    public Measure<Angle> getArmAngle() {
+        return getAngle().divide(GEAR_RATIO);
     }
 
     private void sysIdVelocityDrive(Measure<Voltage> voltage) {

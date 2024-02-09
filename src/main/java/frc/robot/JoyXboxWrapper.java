@@ -9,7 +9,6 @@ public class JoyXboxWrapper {
     private final Joystick m_joystick; //flightstick
     private boolean m_soft_disabled;
     private final boolean m_auto_swap_mode = true; // If true, soft enable if twist is on +
-    private final boolean swapElbowShoulderSticks = false;
 
     public JoyXboxWrapper(int xboxPort, int joystickPort) {
         this(xboxPort, joystickPort, false);
@@ -21,12 +20,8 @@ public class JoyXboxWrapper {
         m_soft_disabled = controllerMode;
     }
 
-    public boolean getBypassLimitButton() {
-        return getFlightButton(11);
-    }
-
     public double getLateralX() {
-        return isSoftDisabled() ? 0 : m_joystick.getX();
+        return 0;//isSoftDisabled() ? 0 : m_joystick.getX();
     }
 
     public double getLateralY() {
@@ -39,7 +34,7 @@ public class JoyXboxWrapper {
         (m_joystick.getTrigger() ? m_joystick.getZ() : 0);
     }
 
-    protected boolean getFlightButton(int id) {
+    private boolean getFlightButton(int id) {
         return isSoftDisabled() ? false : m_joystick.getRawButton(id);
     }
 
@@ -47,18 +42,17 @@ public class JoyXboxWrapper {
         return getFlightButton(7);
     }
 
-    public double getElbowRotation() {
+    public double getFourBarSpeed() {
         if (isSoftDisabled()) return 0;
-        return swapElbowShoulderSticks ? m_xbox.getLeftY() : m_xbox.getRightY();
+        return m_xbox.getRightY();
     }
 
-    public double getShoulderRotation() {
-        if (isSoftDisabled()) return 0;
-        return swapElbowShoulderSticks ? m_xbox.getRightY() : m_xbox.getLeftY();
+    public boolean getTestFourBar() {
+        return getFlightButton(11);
     }
 
-    public boolean getClawOff() {
-        return isSoftDisabled();
+    public boolean getIntake() {
+        return getFlightButton(12);
     }
 
     public void softDisable() {
