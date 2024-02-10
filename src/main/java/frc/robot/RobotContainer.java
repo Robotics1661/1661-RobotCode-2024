@@ -42,7 +42,7 @@ public class RobotContainer {
 
   // Swerve-specific control
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(SWERVE_MAX_SPEED * 0.1).withRotationalDeadband(SWERVE_MAX_ANGULAR_RATE * 0.1) // Add a 10% deadband
+      //.withDeadband(SWERVE_MAX_SPEED * 0.1).withRotationalDeadband(SWERVE_MAX_ANGULAR_RATE * 0.1) // Do NOT Add a 10% deadband (already deadbanded)
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric
                                                                // driving in open loop
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
@@ -61,7 +61,7 @@ public class RobotContainer {
     m_drivetrainSubsystem.setDefaultCommand(m_drivetrainSubsystem.applyRequest(() -> drive
       .withVelocityX(-modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * SWERVE_MAX_SPEED) // Drive forward
       .withVelocityY(-modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * SWERVE_MAX_SPEED) // Drive left
-      .withRotationalRate(-modifyAxis(m_combined_controller.getRotation(), "right_x", true) * SWERVE_MAX_ANGULAR_RATE * 0.15) // Spin
+      .withRotationalRate(-modifyAxis(m_combined_controller.getRotation(), "right_x", true) * SWERVE_MAX_ANGULAR_RATE) // Spin
     ));
     new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));
     new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
