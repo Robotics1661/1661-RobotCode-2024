@@ -6,7 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -21,6 +26,8 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  private PowerDistribution pd;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -33,6 +40,10 @@ public class Robot extends TimedRobot {
     for (int port = 5800; port <= 5805; port++) {
       PortForwarder.add(port, "limelight.local", port);
     }
+
+    SmartDashboard.putNumber("voltage", 42);
+    SmartDashboard.putNumber("totaldraw", 42);
+    pd = new PowerDistribution(1, ModuleType.kRev);
   }
 
   /**
@@ -49,6 +60,28 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    // SmartDashboard info
+
+    // Power and Temperature
+    SmartDashboard.putNumber("voltage", RobotController.getBatteryVoltage());
+    SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
+    SmartDashboard.putNumber("temperature", pd.getTemperature());
+
+    // Match timing
+    SmartDashboard.putNumber("timer", DriverStation.getMatchTime());
+    SmartDashboard.putBoolean("inauto", isAutonomous());
+
+    DriverStation.getAlliance().ifPresent((alliance) -> {
+      switch (alliance) {
+        case Blue:
+          SmartDashboard.putBoolean("isred", false);
+          break;
+        case Red:
+          SmartDashboard.putBoolean("isred", true);
+          break;
+      };
+    });
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

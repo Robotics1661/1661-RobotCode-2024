@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
@@ -15,6 +16,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -42,6 +44,39 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
         if (Utils.isSimulation()) {
             startSimThread();
         }
+    }
+
+    // In m/s/s
+    private double getTotalAcceleration_mss() {
+        final Pigeon2 pigeon = getPigeon2();
+
+        double x = pigeon.getAccelerationX().refresh().getValueAsDouble();
+        double y = pigeon.getAccelerationY().refresh().getValueAsDouble();
+        double z = pigeon.getAccelerationZ().refresh().getValueAsDouble();
+
+        return Math.sqrt(x*x + y*y + z*z);
+    }
+
+    private double getTotalCurrentDraw() {
+        double total = 0;
+
+        for (int i = 0; i < 4; i++) {
+            var module = getModule(i);
+
+            total += Math.abs(module.getDriveMotor().getSupplyCurrent().refresh().getValueAsDouble());
+            total += Math.abs(module.getSteerMotor().getSupplyCurrent().refresh().getValueAsDouble());
+        }
+
+        return total;
+    }
+
+    @Override
+    public void periodic() {
+        final Pigeon2 pigeon = getPigeon2();
+
+        SmartDashboard.putNumber("gyro", pigeon.getAngle());
+        SmartDashboard.putNumber("acceleration", getTotalAcceleration_mss());
+        SmartDashboard.putNumber("driveDraw", getTotalCurrentDraw());
     }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
