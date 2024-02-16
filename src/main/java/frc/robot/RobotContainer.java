@@ -7,8 +7,13 @@ package frc.robot;
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 
+import java.lang.reflect.Method;
+import java.util.Optional;
+import java.util.Set;
+
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,11 +24,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.TestFourBarCommand;
+import frc.robot.commands.named.INamedCommandBuilder;
+import frc.robot.annotationprocessor.INamedCommand;
 import frc.robot.commands.sysid.FourBarSysIdCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.reflections.util.ConfigurationBuilder;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -79,6 +89,8 @@ public class RobotContainer {
       m_drivetrainSubsystem.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
     m_drivetrainSubsystem.registerTelemetry(logger::telemeterize);
+
+    registerNamedCommands();
   }
 
   /**
@@ -130,5 +142,31 @@ public class RobotContainer {
   private enum SysIdMode {
     FOUR_BAR,
     SWERVE_STEERING
+  }
+
+  private void registerNamedCommands() {
+    System.out.println("\n\n\nRegistering named commands");
+
+    Set<Method> annotatedTypes = new Reflections(new ConfigurationBuilder()
+      .forPackages("frc.robot.commands.named")
+      .addScanners(Scanners.MethodsAnnotated)
+    ).getMethodsAnnotatedWith(INamedCommand.class);
+
+    for (Method method : annotatedTypes) {
+      String name = method.getAnnotation(INamedCommand.class).value();
+      Optional<INamedCommandBuilder> builder = INamedCommandBuilder.match(method);
+      if (builder.isPresent()) {
+        NamedCommands.registerCommand(name, builder.get().build(m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
+        System.out.println("Registered named command %s".formatted(name));
+      } else {
+        String msg = "ERROR: Method %s annotated as a named command but doesn't implement the Builder interface".formatted(method.getName());
+        System.out.println(msg);
+        if (Utils.isSimulation()) {
+          throw new RuntimeException(msg);
+        }
+      }
+    }
+
+    System.out.println("Registered named commands\n\n\n");
   }
 }

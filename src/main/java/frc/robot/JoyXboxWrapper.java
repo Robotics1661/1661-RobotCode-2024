@@ -1,11 +1,13 @@
 package frc.robot;
 
+import java.util.Optional;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class JoyXboxWrapper {
-    private final XboxController m_xbox;
+    private final Optional<XboxController> m_xbox;
     private final Joystick m_joystick; //flightstick
     private boolean m_soft_disabled;
     private final boolean m_auto_swap_mode = true; // If true, soft enable if twist is on +
@@ -15,7 +17,8 @@ public class JoyXboxWrapper {
     }
 
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
-        m_xbox = new XboxController(xboxPort);
+        m_xbox = Optional.empty();
+        //m_xbox = new XboxController(xboxPort);
         m_joystick = new Joystick(joystickPort);
         m_soft_disabled = controllerMode;
     }
@@ -56,7 +59,7 @@ public class JoyXboxWrapper {
 
     public double getFourBarSpeed() {
         if (isSoftDisabled()) return 0;
-        return m_xbox.getRightY();
+        return m_xbox.map(XboxController::getRightY).orElse(0.0);
     }
 
     public void softDisable() {

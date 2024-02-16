@@ -21,5 +21,5 @@ public final class Constants {
     public static final int FOUR_BAR_RIGHT_ID = 41;
     public static final int FOUR_BAR_LEFT_ID = 40;
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.NONE;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.TEST_PATH_PLANNER;
 }

@@ -8,12 +8,19 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -38,12 +45,35 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        AutoBuilder.configureHolonomic(
+            m_odometry::getEstimatedPosition,
+            this::seedFieldRelative,
+            this::getRobotRelativeSpeeds,
+            this::driveRobotRelative,
+            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+                4.5, // Max module speed, in m/s
+                0.4, // Drive base radius in meters. Distance from robot center to furthest module.
+                new ReplanningConfig() // Default path replanning config. See the API for the options here
+            ),
+            () -> {
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this // Reference to this subsystem to set requirements
+        );
     }
     public DrivetrainSubsystem(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
-        super(driveTrainConstants, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
-        }
+        this(driveTrainConstants, 0, modules);
     }
 
     // In m/s/s
@@ -76,7 +106,10 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
 
         SmartDashboard.putNumber("gyro", pigeon.getAngle());
         SmartDashboard.putNumber("acceleration", getTotalAcceleration_mss());
-        SmartDashboard.putNumber("driveDraw", getTotalCurrentDraw());
+        
+        if (!Utils.isSimulation()) {
+            SmartDashboard.putNumber("driveDraw", getTotalCurrentDraw());
+        }
     }
 
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -125,5 +158,16 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
             createSteeringSysIdRoutine().dynamic(Direction.kForward),
             createSteeringSysIdRoutine().dynamic(Direction.kReverse)
         ).onlyWhile(safetySupplier);
+    }
+
+    private ChassisSpeeds getRobotRelativeSpeeds() {
+        return m_kinematics.toChassisSpeeds(this.getState().ModuleStates);
+    }
+
+    private final SwerveRequest.ApplyChassisSpeeds chassisSpeedsRequest = new SwerveRequest.ApplyChassisSpeeds()
+        .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
+    private void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
+        this.setControl(chassisSpeedsRequest.withSpeeds(chassisSpeeds));
     }
 }

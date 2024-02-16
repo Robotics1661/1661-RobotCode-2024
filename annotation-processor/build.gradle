@@ -1,0 +1,19 @@
+plugins {
+    id "java"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+group 'frc.robot'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor group: 'com.google.auto.service', name: 'auto-service', version: '1.0'
+    implementation group: 'com.google.auto.service', name: 'auto-service', version: '1.0'
+}

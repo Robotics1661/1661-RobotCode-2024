@@ -1,23 +1,4 @@
 {
-  "HALProvider": {
-    "Other Devices": {
-      "CANCoder (v6)[21]": {
-        "header": {
-          "open": true
-        }
-      },
-      "CANCoder (v6)[22]": {
-        "header": {
-          "open": true
-        }
-      },
-      "Talon FX (v6)[40]/Rotor Sensor": {
-        "header": {
-          "open": true
-        }
-      }
-    }
-  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -28,6 +9,11 @@
       "/SmartDashboard/Module 3": "Mechanism2d"
     },
     "windows": {
+      "/FMSInfo": {
+        "window": {
+          "visible": true
+        }
+      },
       "/Pose": {
         "bottom": 1476,
         "height": 8.210550308227539,
@@ -38,28 +24,13 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/Module 0": {
-        "window": {
-          "visible": true
-        }
-      },
-      "/SmartDashboard/Module 1": {
-        "window": {
-          "visible": true
-        }
-      },
-      "/SmartDashboard/Module 2": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
   "NetworkTables Info": {
-    "Server": {
-      "open": true
-    },
     "visible": true
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }

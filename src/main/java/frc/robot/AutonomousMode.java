@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.DrivetrainSubsystem;
@@ -11,9 +13,9 @@ public enum AutonomousMode {
     FULL_20_POINT(Full20PointAutoCommand::new, "Place cube at top rung, drive to charge station, keep going, then drive back to charge station"),
     PLACE_CUBE_AND_TAXI_LONG(PlaceCubeAndTaxiLongCommand::new, "Place cube at top rung and taxi out of community area"),
     PLACE_CUBE_AND_JUST_BALANCE(PlaceCubeAndJustBalanceCommand::new, "Place cube at top rung and balance on charge station"),*/
-    NONE(ds -> new InstantCommand(), "Do nothing")
+    NONE(ds -> new InstantCommand(), "Do nothing"),
+    TEST_PATH_PLANNER(ds -> new PathPlannerAuto("Test Auto"), "PathPlanner test")
     ;
-    @SuppressWarnings("unused")
     private final SimpleCommandBuilder builder;
     public final String description;
 
