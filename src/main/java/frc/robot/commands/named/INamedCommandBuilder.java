@@ -1,5 +1,7 @@
 package frc.robot.commands.named;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -16,13 +18,23 @@ import frc.robot.subsystems.IntakeSubsystem;
 public interface INamedCommandBuilder {
     Command build(DrivetrainSubsystem drivetrainSubsystem, FourBarSubsystem fourBarSubsystem, IntakeSubsystem intakeSubsystem);
 
-    public static Optional<INamedCommandBuilder> match(Method method) {
-        Class<?>[] provided = method.getParameterTypes();
+    public static Optional<INamedCommandBuilder> match(Executable executable) {
+        if (!(executable instanceof Method || executable instanceof Constructor)) {
+            return Optional.empty();
+        }
+        Class<?>[] provided = executable.getParameterTypes();
         // NOTE: this must be updated if the signature of build() is updated
         Class<?>[] expected = new Class<?>[] {DrivetrainSubsystem.class, FourBarSubsystem.class, IntakeSubsystem.class};
 
-        if (!Command.class.isAssignableFrom(method.getReturnType())) {
-            return Optional.empty();
+        if (executable instanceof Method method) {
+            if (!Command.class.isAssignableFrom(method.getReturnType())) {
+                return Optional.empty();
+            }
+        } else {
+            Constructor<?> constructor = (Constructor<?>) executable;
+            if (!Command.class.isAssignableFrom(constructor.getDeclaringClass())) {
+                return Optional.empty();
+            }
         }
 
         if (expected.length != provided.length) {
@@ -35,14 +47,19 @@ public interface INamedCommandBuilder {
             }
         }
 
-        if (!method.trySetAccessible()) {
+        if (!executable.trySetAccessible()) {
             return Optional.empty();
         }
 
         return Optional.of((driveTrain, fourBar, intake) -> {
             try {
-                return (Command) method.invoke(null, driveTrain, fourBar, intake);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                if (executable instanceof Method method) {
+                    return (Command) method.invoke(null, driveTrain, fourBar, intake);
+                } else {
+                    Constructor<?> constructor = (Constructor<?>) executable;
+                    return (Command) constructor.newInstance(driveTrain, fourBar, intake);
+                }
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
                 if (Utils.isSimulation()) {
                     throw new RuntimeException("(Simulation only) named command creation failed", e);
                 }

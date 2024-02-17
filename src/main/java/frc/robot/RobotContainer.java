@@ -7,7 +7,10 @@ package frc.robot;
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -147,19 +150,28 @@ public class RobotContainer {
   private void registerNamedCommands() {
     System.out.println("\n\n\nRegistering named commands");
 
-    Set<Method> annotatedTypes = new Reflections(new ConfigurationBuilder()
+    Reflections reflections = new Reflections(new ConfigurationBuilder()
       .forPackages("frc.robot.commands.named")
-      .addScanners(Scanners.MethodsAnnotated)
-    ).getMethodsAnnotatedWith(INamedCommand.class);
+      .addScanners(Scanners.MethodsAnnotated, Scanners.ConstructorsAnnotated)
+    );
 
-    for (Method method : annotatedTypes) {
-      String name = method.getAnnotation(INamedCommand.class).value();
-      Optional<INamedCommandBuilder> builder = INamedCommandBuilder.match(method);
+    Set<Method> annotatedMethods = reflections.getMethodsAnnotatedWith(INamedCommand.class);
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Set<Constructor<?>> annotatedConstructors = (Set<Constructor<?>>) (Set) reflections.getConstructorsAnnotatedWith(INamedCommand.class);
+
+    Set<Executable> combined = new HashSet<>(annotatedMethods.size() + annotatedConstructors.size());
+    combined.addAll(annotatedMethods);
+    combined.addAll(annotatedConstructors);
+
+    for (Executable executable : combined) {
+      String name = executable.getAnnotation(INamedCommand.class).value();
+      Optional<INamedCommandBuilder> builder = INamedCommandBuilder.match(executable);
       if (builder.isPresent()) {
         NamedCommands.registerCommand(name, builder.get().build(m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
         System.out.println("Registered named command %s".formatted(name));
       } else {
-        String msg = "ERROR: Method %s annotated as a named command but doesn't implement the Builder interface".formatted(method.getName());
+        String msg = "ERROR: Method %s annotated as a named command but doesn't implement the Builder interface".formatted(executable.getName());
         System.out.println(msg);
         if (Utils.isSimulation()) {
           throw new RuntimeException(msg);

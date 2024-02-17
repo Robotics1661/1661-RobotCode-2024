@@ -110,7 +110,7 @@ public class INamedCommandProcessor extends AbstractProcessor {
             }
         }
 
-        // Parameters checked, return type checked, should be good to go.
+        // Parameters checked, return type checked, should be good to go. NOTE: runtime annotation processing is still needed for actual registration
         System.out.println("Sucessfully registered named command '%s' to %s"
             .formatted(metadata.value(), repr(e)));
     }
