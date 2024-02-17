@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static frc.robot.Constants.PATH_FOLLOW_CONFIG;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -12,6 +14,9 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindHolonomic;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -30,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.util.MathUtil;
 
 /**
  * Class that extends the Phoenix SwerveDrivetrain class and implements subsystem
@@ -39,6 +45,18 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+
+    private static boolean mirrorAlliancePath() {
+        // Boolean supplier that controls when the path will be mirrored for the red alliance
+        // This will flip the path being followed to the red side of the field.
+        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+    }
 
     public DrivetrainSubsystem(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency, SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
@@ -51,24 +69,8 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
             this::seedFieldRelative,
             this::getRobotRelativeSpeeds,
             this::driveRobotRelative,
-            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
-                4.5, // Max module speed, in m/s
-                0.4, // Drive base radius in meters. Distance from robot center to furthest module.
-                new ReplanningConfig() // Default path replanning config. See the API for the options here
-            ),
-            () -> {
-                // Boolean supplier that controls when the path will be mirrored for the red alliance
-                // This will flip the path being followed to the red side of the field.
-                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                    return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-            },
+            PATH_FOLLOW_CONFIG,
+            DrivetrainSubsystem::mirrorAlliancePath,
             this // Reference to this subsystem to set requirements
         );
     }
@@ -169,5 +171,23 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
 
     private void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
         this.setControl(chassisSpeedsRequest.withSpeeds(chassisSpeeds));
+    }
+    
+    public Command pathfindTo(PathPlannerPath targetPath) {
+        PathConstraints constraints = new PathConstraints(
+            3.0, 4.0,
+            MathUtil.degreesToRadians(540), MathUtil.degreesToRadians(720));
+
+        return new PathfindHolonomic(
+            targetPath,
+            constraints,
+            m_odometry::getEstimatedPosition,
+            this::getRobotRelativeSpeeds,
+            this::driveRobotRelative,
+            PATH_FOLLOW_CONFIG,
+            //3.0, // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate. Optional
+            DrivetrainSubsystem::mirrorAlliancePath,
+            this // Reference to this subsystem to set requirements
+        );
     }
 }

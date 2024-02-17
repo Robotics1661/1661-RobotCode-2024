@@ -7,21 +7,25 @@ package frc.robot;
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -178,6 +182,18 @@ public class RobotContainer {
         }
       }
     }
+
+    // Register special `pathfind_to_"..."` commands
+    Stream.of(new File(Filesystem.getDeployDirectory(), "pathplanner/paths/").listFiles())
+      .filter(file -> !file.isDirectory())
+      .map(File::getName)
+      .filter(name -> name.endsWith(".path"))
+      .map(name -> name.substring(0, name.length() - 5))
+      .forEach(pathName -> {
+        String commandName = "pathfind_to_\""+pathName+"\"";
+        NamedCommands.registerCommand(commandName, m_drivetrainSubsystem.pathfindTo(PathPlannerPath.fromPathFile(pathName)));
+        System.out.println("Registered pathfinding command %s".formatted(commandName));
+      });
 
     System.out.println("Registered named commands\n\n\n");
   }

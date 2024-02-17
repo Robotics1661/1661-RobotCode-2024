@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -21,5 +25,13 @@ public final class Constants {
     public static final int FOUR_BAR_RIGHT_ID = 41;
     public static final int FOUR_BAR_LEFT_ID = 40;
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.TEST_PATH_PLANNER;
+    public static final HolonomicPathFollowerConfig PATH_FOLLOW_CONFIG = new HolonomicPathFollowerConfig(
+        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+        new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+        4.5, // Max module speed, in m/s
+        0.558614, // Drive base radius in meters. Distance from robot center to furthest module.
+        new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
+    );
+
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.TEST_PATH_PLANNER_REPLAN;
 }

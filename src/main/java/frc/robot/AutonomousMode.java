@@ -14,7 +14,8 @@ public enum AutonomousMode {
     PLACE_CUBE_AND_TAXI_LONG(PlaceCubeAndTaxiLongCommand::new, "Place cube at top rung and taxi out of community area"),
     PLACE_CUBE_AND_JUST_BALANCE(PlaceCubeAndJustBalanceCommand::new, "Place cube at top rung and balance on charge station"),*/
     NONE(ds -> new InstantCommand(), "Do nothing"),
-    TEST_PATH_PLANNER(ds -> new PathPlannerAuto("Test Auto"), "PathPlanner test")
+    TEST_PATH_PLANNER(ds -> new PathPlannerAuto("Test Auto"), "PathPlanner test"),
+    TEST_PATH_PLANNER_REPLAN(ds -> new PathPlannerAuto("Replanning Auto"), "PathPlanner replabbubg test")
     ;
     private final SimpleCommandBuilder builder;
     public final String description;
