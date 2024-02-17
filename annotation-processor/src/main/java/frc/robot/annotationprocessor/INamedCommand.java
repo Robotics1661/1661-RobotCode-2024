@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * Should only annotate static methods implementing {@link frc.robot.commands.named.INamedCommandBuilder#build}
  * When run in a simulation, will throw on errors.
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface INamedCommand {
     /** PathPlanner named command name */
