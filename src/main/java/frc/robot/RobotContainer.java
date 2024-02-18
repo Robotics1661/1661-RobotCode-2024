@@ -38,6 +38,8 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.util.DoubleRingBuffer;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -56,6 +58,11 @@ public class RobotContainer {
 
   // Controllers
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
+
+  // average control out over `SMOOTH_PERIOD` inputs
+  private static final int SMOOTH_PERIOD = 7;
+  private final DoubleRingBuffer m_drive_forward_buffer = new DoubleRingBuffer(SMOOTH_PERIOD);
+  private final DoubleRingBuffer m_drive_sideways_buffer = new DoubleRingBuffer(SMOOTH_PERIOD);
 
   // Swerve-specific control
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -76,8 +83,8 @@ public class RobotContainer {
     // Left stick X axis -> left and right movement
     // Right stick X axis -> rotation
     m_drivetrainSubsystem.setDefaultCommand(m_drivetrainSubsystem.applyRequest(() -> drive
-      .withVelocityX(-modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * SWERVE_MAX_SPEED) // Drive forward
-      .withVelocityY(-modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * SWERVE_MAX_SPEED) // Drive left
+      .withVelocityX(m_drive_forward_buffer.smooth(-modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * SWERVE_MAX_SPEED)) // Drive forward
+      .withVelocityY(m_drive_sideways_buffer.smooth(-modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * SWERVE_MAX_SPEED)) // Drive left
       .withRotationalRate(-modifyAxis(m_combined_controller.getRotation(), "right_x", true) * SWERVE_MAX_ANGULAR_RATE) // Spin
     ));
     new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));

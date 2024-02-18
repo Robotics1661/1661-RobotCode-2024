@@ -9,7 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-@SuppressWarnings("removal") // have to use phoenix 5 for talon control
+@SuppressWarnings({"deprecation", "removal"}) // have to use phoenix 5 for talon control
 public class IntakeSubsystem extends SubsystemBase {
     private final TalonFX m_motor;
     //private final DutyCycleOut m_request;

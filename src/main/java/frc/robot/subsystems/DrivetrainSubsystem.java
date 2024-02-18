@@ -17,9 +17,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindHolonomic;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
@@ -82,9 +79,9 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
     private double getTotalAcceleration_mss() {
         final Pigeon2 pigeon = getPigeon2();
 
-        double x = pigeon.getAccelerationX().refresh().getValueAsDouble();
-        double y = pigeon.getAccelerationY().refresh().getValueAsDouble();
-        double z = pigeon.getAccelerationZ().refresh().getValueAsDouble();
+        double x = pigeon.getAccelerationX().refresh().getValueAsDouble() - pigeon.getGravityVectorX().refresh().getValueAsDouble();
+        double y = pigeon.getAccelerationY().refresh().getValueAsDouble() - pigeon.getGravityVectorY().refresh().getValueAsDouble();
+        double z = pigeon.getAccelerationZ().refresh().getValueAsDouble() - pigeon.getGravityVectorZ().refresh().getValueAsDouble();
 
         return Math.sqrt(x*x + y*y + z*z);
     }
@@ -172,7 +169,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
     private void driveRobotRelative(ChassisSpeeds chassisSpeeds) {
         this.setControl(chassisSpeedsRequest.withSpeeds(chassisSpeeds));
     }
-    
+
     public Command pathfindTo(PathPlannerPath targetPath) {
         PathConstraints constraints = new PathConstraints(
             3.0, 4.0,

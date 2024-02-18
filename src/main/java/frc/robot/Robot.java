@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.pathfinding.LocalADStar;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
@@ -69,9 +70,11 @@ public class Robot extends TimedRobot {
     // SmartDashboard info
 
     // Power and Temperature
-    SmartDashboard.putNumber("voltage", RobotController.getBatteryVoltage());
-    SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
-    SmartDashboard.putNumber("temperature", pd.getTemperature());
+    if (!Utils.isSimulation()) {
+      SmartDashboard.putNumber("voltage", RobotController.getBatteryVoltage());
+      SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
+      SmartDashboard.putNumber("temperature", RobotController.getCPUTemp());//pd.getTemperature());
+    }
 
     // Match timing
     SmartDashboard.putNumber("timer", DriverStation.getMatchTime());
