@@ -1,8 +1,11 @@
 package frc.robot.annotationprocessor;
 
+import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -18,6 +21,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 
 import com.google.auto.service.AutoService;
 
@@ -40,26 +45,53 @@ public class INamedCommandProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Set<? extends Element> annotatedHandlers = roundEnv.getElementsAnnotatedWith(INamedCommand.class);
 
+        if (annotations.isEmpty() || annotatedHandlers.isEmpty())
+            return false;
+
         for (Element e : annotatedHandlers) {
             if (!isKindOk(e))
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@INamedCommand can only be applied to static methods and constructors, %s does not comply"
                     .formatted(repr(e)));
         }
 
+        List<String> entries = new ArrayList<>();
+
         annotatedHandlers.stream()
             .filter(INamedCommandProcessor::isKindOk)
             .map((e) -> (ExecutableElement) e)
             .forEach((e) -> {
                 try {
-                    processElement(e);
+                    processElement(e, entries);
                 } catch (CompileException ex) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ex.getMessage());
                 }
             });
+        String commandsXml = entries.stream().collect(Collectors.joining());
+        StringBuilder finalDescriptor = new StringBuilder()
+            .append("<?xml version=\"1.0\" encoding=\"utf-8\" ?>")
+            .append("\n<named-commands>")
+            .append(commandsXml)
+            .append("\n</named-commands>\n");            
+
+        try {
+            /*System.out.println("hello1");
+            System.out.println(annotations.toString());
+            System.out.println(annotatedHandlers.toString());*/
+            FileObject file = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "resources.frc.robot", "named_commands.xml");
+            //System.out.println("hello2");
+            Writer writer = file.openWriter();
+            //System.out.println("hello3");
+            writer.write(finalDescriptor.toString());
+            writer.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to write named commands file");
+        }
+
         return true;
     }
 
-    private void processElement(ExecutableElement e) throws CompileException {
+    private void processElement(ExecutableElement e, List<String> entries) throws CompileException {
         INamedCommand metadata = e.getAnnotation(INamedCommand.class);
         if (!registeredCommands.add(metadata.value())) {
             throw new CompileException("@INamedCommand: duplicate registry of command '%s' by %s"
@@ -110,6 +142,63 @@ public class INamedCommandProcessor extends AbstractProcessor {
             }
         }
 
+        // Create entries
+        if (e.getKind() == ElementKind.METHOD) {
+            /*
+    <command name="test_command_method">
+        <class>frc.robot.commands.named.TestCommand</class>
+        <method>
+            <name>build</name>
+            <return>frc.robot.commands.named.TestCommand</return>
+            <parameters>
+                <parameter>frc.robot.subsystems.DrivetrainSubsystem</parameter>
+                <parameter>frc.robot.subsystems.FourBarSubsystem</parameter>
+                <parameter>frc.robot.subsystems.IntakeSubsystem</parameter>
+            </parameters>
+        </method>
+    </command>
+            */
+            StringBuilder entry = new StringBuilder()
+                .append("\n\t<command name=\"").append(metadata.value()).append("\">")
+                .append("\n\t\t<class>").append(getEnclosingClassName(e)).append("</class>")
+                .append("\n\t\t<method>")
+                .append("\n\t\t\t<name>").append(e.getSimpleName()).append("</name>")
+                .append("\n\t\t\t<return>").append(((DeclaredType) e.getReturnType()).toString()).append("</return>")
+                .append("\n\t\t\t<parameters>");
+            for (VariableElement param : params) {
+                TypeElement paramType = (TypeElement) ((DeclaredType) param.asType()).asElement();
+                entry.append("\n\t\t\t\t<parameter>").append(paramType.getQualifiedName()).append("</parameter>");
+            }
+            entry
+                .append("\n\t\t\t</parameters>")
+                .append("\n\t\t</method>")
+                .append("\n\t</command>");
+            entries.add(entry.toString());
+        } else if (e.getKind() == ElementKind.CONSTRUCTOR) {
+            /*
+    <command name="test_command">
+        <class>frc.robot.commands.named.TestCommand</class>
+        <constructor>
+            <parameter>frc.robot.subsystems.DrivetrainSubsystem</parameter>
+            <parameter>frc.robot.subsystems.FourBarSubsystem</parameter>
+            <parameter>frc.robot.subsystems.IntakeSubsystem</parameter>
+        </constructor>
+    </command>
+            */
+            StringBuilder entry = new StringBuilder()
+                .append("\n\t<command name=\"").append(metadata.value()).append("\">")
+                .append("\n\t\t<class>").append(getEnclosingClassName(e)).append("</class>")
+                .append("\n\t\t<constructor>");
+            for (VariableElement param : params) {
+                TypeElement paramType = (TypeElement) ((DeclaredType) param.asType()).asElement();
+                entry.append("\n\t\t\t<parameter>").append(paramType.getQualifiedName()).append("</parameter>");
+            }
+            entry
+                .append("\n\t\t</constructor>")
+                .append("\n\t</command>");
+            entries.add(entry.toString());
+        }
+
         // Parameters checked, return type checked, should be good to go. NOTE: runtime annotation processing is still needed for actual registration
         System.out.println("Sucessfully registered named command '%s' to %s"
             .formatted(metadata.value(), repr(e)));
@@ -120,8 +209,12 @@ public class INamedCommandProcessor extends AbstractProcessor {
         return SourceVersion.RELEASE_17;
     }
 
+    private static String getEnclosingClassName(Element e) {
+        return ((TypeElement) e.getEnclosingElement()).getQualifiedName().toString();
+    }
+
     private static String repr(Element e) {
-        String className = ((TypeElement) e.getEnclosingElement()).getQualifiedName().toString();
+        String className = getEnclosingClassName(e);
         return className + "#" + e.getSimpleName().toString();
     }
 
@@ -142,3 +235,32 @@ public class INamedCommandProcessor extends AbstractProcessor {
         }
     }
 }
+
+/*
+File example:
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<named-commands>
+    <command name="test_command">
+        <class>frc.robot.commands.named.TestCommand</class>
+        <constructor>
+            <parameter>frc.robot.subsystems.DrivetrainSubsystem</parameter>
+            <parameter>frc.robot.subsystems.FourBarSubsystem</parameter>
+            <parameter>frc.robot.subsystems.IntakeSubsystem</parameter>
+        </constructor>
+    </command>
+    <command name="test_command_method">
+        <class>frc.robot.commands.named.TestCommand</class>
+        <method>
+            <name>build</name>
+            <return>frc.robot.commands.named.TestCommand</return>
+            <parameters>
+                <parameter>frc.robot.subsystems.DrivetrainSubsystem</parameter>
+                <parameter>frc.robot.subsystems.FourBarSubsystem</parameter>
+                <parameter>frc.robot.subsystems.IntakeSubsystem</parameter>
+            </parameters>
+        </method>
+    </command>
+</named-commands>
+```
+*/

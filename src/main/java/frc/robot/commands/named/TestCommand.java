@@ -19,12 +19,12 @@ public class TestCommand extends InstantCommand {
         SmartDashboard.putNumber("test_command_times", 0);
     }
 
-    /* Another valid way to register
-    @INamedCommand("test_command")
-    public static Command build(DrivetrainSubsystem drivetrainSubsystem, FourBarSubsystem fourBarSubsystem,
+    // * Another valid way to register
+    @INamedCommand("test_command_method")
+    public static TestCommand build(DrivetrainSubsystem drivetrainSubsystem, FourBarSubsystem fourBarSubsystem,
             IntakeSubsystem intakeSubsystem) {
         SmartDashboard.putNumber("test_command_times", 0);
         return new TestCommand(drivetrainSubsystem, fourBarSubsystem, intakeSubsystem);
     }
-    */
+    // */
 }

@@ -8,6 +8,8 @@ import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -15,6 +17,10 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
@@ -43,6 +49,10 @@ import frc.robot.util.DoubleRingBuffer;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -161,7 +171,7 @@ public class RobotContainer {
   private void registerNamedCommands() {
     System.out.println("\n\n\nRegistering named commands");
 
-    Reflections reflections = new Reflections(new ConfigurationBuilder()
+    /*Reflections reflections = new Reflections(new ConfigurationBuilder()
       .forPackages("frc.robot.commands.named")
       .addScanners(Scanners.MethodsAnnotated, Scanners.ConstructorsAnnotated)
     );
@@ -173,7 +183,49 @@ public class RobotContainer {
 
     Set<Executable> combined = new HashSet<>(annotatedMethods.size() + annotatedConstructors.size());
     combined.addAll(annotatedMethods);
-    combined.addAll(annotatedConstructors);
+    combined.addAll(annotatedConstructors);*/
+    Set<Executable> combined = new HashSet<>();
+
+    InputStream namedCommandsStream = getClass().getResourceAsStream("/resources/frc/robot/named_commands.xml");
+    System.out.print("namedCommandsStream: ");
+    System.out.println(namedCommandsStream);
+    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+    Document doc = null;
+    try {
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      doc = docBuilder.parse(namedCommandsStream);
+    } catch (ParserConfigurationException | SAXException | IOException e) {
+      System.err.println("Failed to load generated named commands file");
+      e.printStackTrace();
+    }
+    if (doc != null) {
+      System.out.print("\n\nfirst child: ");
+      System.out.println(doc.getFirstChild());
+      Node namedCommands = doc.getFirstChild();
+
+      NodeList children = namedCommands.getChildNodes();
+      for (int i = 0; i < children.getLength(); i++) {
+        Node command = children.item(i);
+        if (!command.getNodeName().equals("command")) continue;
+
+        NodeList commandChildren = command.getChildNodes();
+        for (int j = 0; j < commandChildren.getLength(); j++) {
+          Node inner = commandChildren.item(j);
+          // TODO: complete parsing and register commands
+          switch (inner.getNodeName()) {
+            case "class" -> {
+              System.out.println("found class");
+            }
+            case "method" -> {
+              System.out.println("found method");
+            }
+            case "constructor" -> {
+              System.out.println("found constructor");
+            }
+          }
+        }
+      }
+    }
 
     for (Executable executable : combined) {
       String name = executable.getAnnotation(INamedCommand.class).value();
