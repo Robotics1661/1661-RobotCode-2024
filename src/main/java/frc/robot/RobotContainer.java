@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -209,12 +210,20 @@ public class RobotContainer {
         if (!command.getNodeName().equals("command")) continue;
 
         NodeList commandChildren = command.getChildNodes();
+
+        @Nullable String className = null;
+        @Nullable String methodName = null;
+        @Nullable String returnType = null;
+        String[] parameters = new String[]{null, null, null};
+        int paramIdx = 0;
+
         for (int j = 0; j < commandChildren.getLength(); j++) {
           Node inner = commandChildren.item(j);
           // TODO: complete parsing and register commands
           switch (inner.getNodeName()) {
             case "class" -> {
               System.out.println("found class");
+              System.out.println(inner.getTextContent());
             }
             case "method" -> {
               System.out.println("found method");
