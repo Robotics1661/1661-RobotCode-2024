@@ -21,9 +21,13 @@ public final class Constants {
     public static double SWERVE_MAX_ANGULAR_RATE = 1.5 * Math.PI; // 3/4 of a rotation per second max angular velocity
     //public static final int PCM = 30; //pneumatics control module
 
-    public static final int INTAKE_ID = 13;
+    public static final int INTAKE_ID = 36;
+
     public static final int FOUR_BAR_RIGHT_ID = 41;
     public static final int FOUR_BAR_LEFT_ID = 40;
+    
+    public static final int SHOOTER_FRONT_ID = 33;
+    public static final int SHOOTER_BACK_ID = 34;
 
     public static final HolonomicPathFollowerConfig PATH_FOLLOW_CONFIG = new HolonomicPathFollowerConfig(
         new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants

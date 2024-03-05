@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
     // Power and Temperature
     if (!Utils.isSimulation()) {
       SmartDashboard.putNumber("voltage", RobotController.getBatteryVoltage());
-      SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
+      // SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
       SmartDashboard.putNumber("temperature", RobotController.getCPUTemp());//pd.getTemperature());
     }
 

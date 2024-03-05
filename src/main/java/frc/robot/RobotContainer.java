@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Optional;
@@ -37,6 +38,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.TestFourBarCommand;
 import frc.robot.commands.named.INamedCommandBuilder;
 import frc.robot.annotationprocessor.INamedCommand;
@@ -45,6 +47,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.util.DoubleRingBuffer;
 
 import org.reflections.Reflections;
@@ -66,6 +69,7 @@ public class RobotContainer {
   private final DrivetrainSubsystem m_drivetrainSubsystem = TunerConstants.DriveTrain;
   private final FourBarSubsystem m_fourBarSubsystem = new FourBarSubsystem();
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
 
   // Controllers
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
@@ -101,13 +105,21 @@ public class RobotContainer {
     new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));
     new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
 
+    //*
     m_fourBarSubsystem.setDefaultCommand(new TestFourBarCommand(
       m_fourBarSubsystem,
-      () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true)
-    ));
+      () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
+      m_combined_controller::getTestFourBarForward,
+      m_combined_controller::getTestFourBarBackward
+    )); // */
     m_intakeSubsystem.setDefaultCommand(new IntakeCommand(
       m_intakeSubsystem,
       m_combined_controller::getIntake
+    ));
+
+    m_shooterSubsystem.setDefaultCommand(new ShooterCommand(
+      m_shooterSubsystem,
+      () -> modifyAxis(m_combined_controller.getShooterSpeed(), "shooter", true)
     ));
 
     if (Utils.isSimulation()) {
@@ -155,7 +167,7 @@ public class RobotContainer {
     return value;
   }
 
-  private final SysIdMode SYSID_MODE = SysIdMode.SWERVE_STEERING;
+  private final SysIdMode SYSID_MODE = SysIdMode.FOUR_BAR;
 
   public Command getSysIdCommand() {
     return switch (SYSID_MODE) {
@@ -169,27 +181,26 @@ public class RobotContainer {
     SWERVE_STEERING
   }
 
+  /**
+   * 
+   * @param parameterNodes contents of <parameters/> tag
+   * @param parameterArray String[3]
+   */
+  private static void readAutoNamedCommandParameters(NodeList parameterNodes, String[] parameterArray) {
+    int idx = 0;
+    for (int i = 0; i < parameterNodes.getLength(); i++) {
+      Node child = parameterNodes.item(i);
+      if (child.getNodeName().equals("parameter")) {
+        parameterArray[idx] = child.getTextContent();
+        idx++;
+      }
+    }
+  }
+
   private void registerNamedCommands() {
     System.out.println("\n\n\nRegistering named commands");
 
-    /*Reflections reflections = new Reflections(new ConfigurationBuilder()
-      .forPackages("frc.robot.commands.named")
-      .addScanners(Scanners.MethodsAnnotated, Scanners.ConstructorsAnnotated)
-    );
-
-    Set<Method> annotatedMethods = reflections.getMethodsAnnotatedWith(INamedCommand.class);
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    Set<Constructor<?>> annotatedConstructors = (Set<Constructor<?>>) (Set) reflections.getConstructorsAnnotatedWith(INamedCommand.class);
-
-    Set<Executable> combined = new HashSet<>(annotatedMethods.size() + annotatedConstructors.size());
-    combined.addAll(annotatedMethods);
-    combined.addAll(annotatedConstructors);*/
-    Set<Executable> combined = new HashSet<>();
-
     InputStream namedCommandsStream = getClass().getResourceAsStream("/resources/frc/robot/named_commands.xml");
-    System.out.print("namedCommandsStream: ");
-    System.out.println(namedCommandsStream);
     DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
     Document doc = null;
     try {
@@ -200,53 +211,93 @@ public class RobotContainer {
       e.printStackTrace();
     }
     if (doc != null) {
-      System.out.print("\n\nfirst child: ");
-      System.out.println(doc.getFirstChild());
       Node namedCommands = doc.getFirstChild();
 
       NodeList children = namedCommands.getChildNodes();
-      for (int i = 0; i < children.getLength(); i++) {
+      Outer: for (int i = 0; i < children.getLength(); i++) {
         Node command = children.item(i);
         if (!command.getNodeName().equals("command")) continue;
+
+        String commandName = command.getAttributes().getNamedItem("name").getTextContent();
+        System.out.println("Beginning registration for command named: "+commandName);
 
         NodeList commandChildren = command.getChildNodes();
 
         @Nullable String className = null;
         @Nullable String methodName = null;
         @Nullable String returnType = null;
+        boolean foundConstructor = false;
         String[] parameters = new String[]{null, null, null};
-        int paramIdx = 0;
 
         for (int j = 0; j < commandChildren.getLength(); j++) {
           Node inner = commandChildren.item(j);
-          // TODO: complete parsing and register commands
           switch (inner.getNodeName()) {
             case "class" -> {
-              System.out.println("found class");
-              System.out.println(inner.getTextContent());
+              className = inner.getTextContent();
             }
             case "method" -> {
-              System.out.println("found method");
+              NodeList methodChildren = inner.getChildNodes();
+              for (int k = 0; k < methodChildren.getLength(); k++) {
+                Node methodInner = methodChildren.item(k);
+                switch (methodInner.getNodeName()) {
+                  case "name" -> methodName = methodInner.getTextContent();
+                  case "return" -> returnType = methodInner.getTextContent();
+                  case "parameters" -> readAutoNamedCommandParameters(methodInner.getChildNodes(), parameters);
+                };
+              }
             }
             case "constructor" -> {
-              System.out.println("found constructor");
+              readAutoNamedCommandParameters(inner.getChildNodes(), parameters);
+              foundConstructor = true;
             }
           }
         }
-      }
-    }
 
-    for (Executable executable : combined) {
-      String name = executable.getAnnotation(INamedCommand.class).value();
-      Optional<INamedCommandBuilder> builder = INamedCommandBuilder.match(executable);
-      if (builder.isPresent()) {
-        NamedCommands.registerCommand(name, builder.get().build(m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
-        System.out.println("Registered named command %s".formatted(name));
-      } else {
-        String msg = "ERROR: Method %s annotated as a named command but doesn't implement the Builder interface".formatted(executable.getName());
-        System.out.println(msg);
-        if (Utils.isSimulation()) {
-          throw new RuntimeException(msg);
+        final ClassLoader classLoader = RobotContainer.class.getClassLoader();
+
+        // Get classes for parameters
+        Class<?>[] paramClasses = new Class[parameters.length];
+        for (int j = 0; j < parameters.length; j++) {
+          try {
+            paramClasses[j] = classLoader.loadClass(parameters[j]);
+          } catch (ClassNotFoundException e) {
+            System.err.println("Failed to register named command '"+commandName+"'");
+            e.printStackTrace();
+            if (Utils.isSimulation()) {
+              throw new RuntimeException("Failed to register named command '"+commandName+"'");
+            }
+            continue Outer;
+          }
+        }
+
+        try {
+          if (foundConstructor) {
+            Class<?> clazz = classLoader.loadClass(className);
+            var constructor = clazz.getConstructor(paramClasses);
+            constructor.setAccessible(true);
+            NamedCommands.registerCommand(commandName, (Command) constructor.newInstance(m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
+            System.out.println("Registered named command %s".formatted(commandName));
+          } else if (methodName != null && returnType != null) {
+            Class<?> clazz = classLoader.loadClass(className);
+            var method = clazz.getMethod(methodName, paramClasses);
+            method.setAccessible(true);
+            NamedCommands.registerCommand(commandName, (Command) method.invoke(null, m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
+            System.out.println("Registered named command %s".formatted(commandName));
+          } else {
+            System.err.println("Failed to register named command '"+commandName+"', no constructor or method found");
+            if (Utils.isSimulation()) {
+              throw new RuntimeException("Failed to register named command '"+commandName+"'");
+            }
+            continue Outer;
+          }
+        }  catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
+                  | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          System.err.println("Failed to register named command '"+commandName+"'");
+          e.printStackTrace();
+          if (Utils.isSimulation()) {
+            throw new RuntimeException("Failed to register named command '"+commandName+"'");
+          }
+          continue Outer;
         }
       }
     }

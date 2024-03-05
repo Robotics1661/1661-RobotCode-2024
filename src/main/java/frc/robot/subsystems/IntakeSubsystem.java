@@ -3,45 +3,52 @@ package frc.robot.subsystems;
 import static frc.robot.Constants.INTAKE_ID;
 import static frc.robot.util.MathUtil.clamp;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.MathUtil;
 
-@SuppressWarnings({"deprecation", "removal"}) // have to use phoenix 5 for talon control
 public class IntakeSubsystem extends SubsystemBase {
-    private final TalonFX m_motor;
-    //private final DutyCycleOut m_request;
+    private final CANSparkMax m_motor;
 
-    //private static final double MAX_VOLTAGE = 12;
+    private double currentSpeed = 0;
+    private double targetSpeed = 0;
 
     public IntakeSubsystem() {
-        m_motor = new TalonFX(INTAKE_ID);
-        //m_request = new DutyCycleOut(0);
-
-        /*TalonFXConfigurator config = m_motor.getConfigurator();
-        config.apply(new VoltageConfigs()
-            .withPeakForwardVoltage(MAX_VOLTAGE)
-            .withPeakReverseVoltage(-MAX_VOLTAGE)
-        );*/
-
-        m_motor.setNeutralMode(NeutralMode.Brake);
+        m_motor = new CANSparkMax(INTAKE_ID, MotorType.kBrushless);
+        m_motor.restoreFactoryDefaults();
+        m_motor.setIdleMode(IdleMode.kCoast);
+        m_motor.setSmartCurrentLimit(80);
 
         stop();
     }
 
-    private void setSpeed(double percent) {
-        percent = clamp(percent, -1, 1);
-        m_motor.set(TalonFXControlMode.PercentOutput, percent);
+    private void setSpeed(double targetPercent) {
+        targetSpeed = clamp(targetPercent, -1, 1);
+    }
+
+    @Override
+    public void periodic() {
+        super.periodic();
+
+        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.1);
+        if (Math.abs(currentSpeed) < 0.01) {
+            currentSpeed = 0;
+        }
+        if (Math.abs(currentSpeed) > 0.99) {
+            currentSpeed = 1 * Math.signum(currentSpeed);
+        }
+
+        m_motor.set(currentSpeed);
     }
 
     public void run() {
-        setSpeed(0.85);
+        setSpeed(0.95); // was 0.85
     }
 
     public void stop() {
         setSpeed(0);
-        m_motor.set(TalonFXControlMode.Disabled, 0);
     }
 }

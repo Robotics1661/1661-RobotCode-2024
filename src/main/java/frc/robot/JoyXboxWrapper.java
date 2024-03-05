@@ -17,8 +17,8 @@ public class JoyXboxWrapper {
     }
 
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
-        m_xbox = Optional.empty();
-        //m_xbox = new XboxController(xboxPort);
+        //m_xbox = Optional.empty();
+        m_xbox = Optional.of(new XboxController(xboxPort));
         m_joystick = new Joystick(joystickPort);
         m_soft_disabled = controllerMode;
     }
@@ -54,12 +54,30 @@ public class JoyXboxWrapper {
     }
 
     public boolean getIntake() {
-        return getFlightButton(5);
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getRightBumper).orElse(false);
+        //return getFlightButton(5);
     }
 
     public double getFourBarSpeed() {
         if (isSoftDisabled()) return 0;
         return m_xbox.map(XboxController::getRightY).orElse(0.0);
+    }
+
+    public boolean getTestFourBarForward() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getYButton).orElse(false);        
+    }
+
+    public boolean getTestFourBarBackward() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getAButton).orElse(false);        
+    }
+
+    public double getShooterSpeed() {
+        if (isSoftDisabled()) return 0;
+        if (m_xbox.map(XboxController::getLeftBumper).orElse(false)) return -Math.sqrt(0.45); // -1 for general shooting, -sqrt(0.45) for amp
+        return m_xbox.map(XboxController::getLeftY).orElse(0.0);
     }
 
     public void softDisable() {
@@ -73,6 +91,7 @@ public class JoyXboxWrapper {
     }
 
     public boolean isSoftDisabled() {
+        if (true) return false; // FIXME: temporary to allow joystick-less use
         if (this.m_auto_swap_mode) {
             SmartDashboard.putNumber("twist", this.m_joystick.getThrottle());
             if (this.m_joystick.getThrottle() < -0.75) {
