@@ -10,13 +10,7 @@ import static frc.robot.Constants.SWERVE_MAX_SPEED;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -24,11 +18,16 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -40,8 +39,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.TestFourBarCommand;
-import frc.robot.commands.named.INamedCommandBuilder;
-import frc.robot.annotationprocessor.INamedCommand;
 import frc.robot.commands.sysid.FourBarSysIdCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DrivetrainSubsystem;
@@ -49,14 +46,6 @@ import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.util.DoubleRingBuffer;
-
-import org.reflections.Reflections;
-import org.reflections.scanners.Scanners;
-import org.reflections.util.ConfigurationBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -110,8 +99,14 @@ public class RobotContainer {
       m_fourBarSubsystem,
       () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
       m_combined_controller::getTestFourBarForward,
-      m_combined_controller::getTestFourBarBackward
+      m_combined_controller::getTestFourBarBackward,
+
+      m_combined_controller::getTestFourBarStepEnable,
+      m_combined_controller::getTestFourBarStepForward,
+      m_combined_controller::getTestFourBarStepBackward
     )); // */
+
+
     m_intakeSubsystem.setDefaultCommand(new IntakeCommand(
       m_intakeSubsystem,
       m_combined_controller::getIntake

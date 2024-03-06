@@ -13,13 +13,26 @@ public class TestFourBarCommand extends Command {
     private final DoubleSupplier m_speedSupplier;
     private final BooleanSupplier m_goForwardSupplier;
     private final BooleanSupplier m_goBackwardSupplier;
+    private final BooleanSupplier m_stepEnableSupplier;
+    private final BooleanSupplier m_stepForwardSupplier;
+    private final BooleanSupplier m_stepBackwardSupplier;
     private boolean stopped = false;
+    
+    private boolean stepButtonPressed = false;
 
-    public TestFourBarCommand(FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier, BooleanSupplier goForwardSupplier, BooleanSupplier goBackwardSupplier) {
+    public TestFourBarCommand(
+        FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier,
+        BooleanSupplier goForwardSupplier, BooleanSupplier goBackwardSupplier,
+        BooleanSupplier stepEnableSupplier, BooleanSupplier stepForwardSupplier, BooleanSupplier stepBackwardSupplier
+        ) {
         this.m_fourBarSubsystem = fourBarSubsystem;
         this.m_speedSupplier = speedSupplier;
         this.m_goForwardSupplier = goForwardSupplier;
         this.m_goBackwardSupplier = goBackwardSupplier;
+
+        this.m_stepEnableSupplier = stepEnableSupplier;
+        this.m_stepForwardSupplier = stepForwardSupplier;
+        this.m_stepBackwardSupplier = stepBackwardSupplier;
 
         addRequirements(m_fourBarSubsystem);
     }
@@ -37,9 +50,20 @@ public class TestFourBarCommand extends Command {
             }
 
             if (m_goForwardSupplier.getAsBoolean()) {
-                m_fourBarSubsystem.setTargetPoint(SetPoints.TEST_FORWARD);
+                m_fourBarSubsystem.setTargetPoint(SetPoints.ORIGIN);
             } else if (m_goBackwardSupplier.getAsBoolean()) {
-                m_fourBarSubsystem.setTargetPoint(SetPoints.TEST_BACKWARD);
+                m_fourBarSubsystem.stop();
+                //m_fourBarSubsystem.setTargetPoint(SetPoints.TEST_BACKWARD);
+            } else if (m_stepEnableSupplier.getAsBoolean()) {
+                if (m_stepForwardSupplier.getAsBoolean() && !stepButtonPressed) {
+                    stepButtonPressed = true;
+                    m_fourBarSubsystem.moveTargetForward();
+                } else if (m_stepBackwardSupplier.getAsBoolean() && !stepButtonPressed) {
+                    stepButtonPressed = true;
+                    m_fourBarSubsystem.moveTargetBackward();
+                } else {
+                    stepButtonPressed = false;
+                }
             } else { // safety stop - require button to be held in for motion
                 m_fourBarSubsystem.stop();
             }

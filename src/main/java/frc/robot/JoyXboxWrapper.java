@@ -74,6 +74,21 @@ public class JoyXboxWrapper {
         return m_xbox.map(XboxController::getAButton).orElse(false);        
     }
 
+    public boolean getTestFourBarStepEnable() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getRightTriggerAxis).orElse(0.0) > 0.5;
+    }
+
+    public boolean getTestFourBarStepForward() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getBButton).orElse(false);
+    }
+
+    public boolean getTestFourBarStepBackward() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getXButton).orElse(false);
+    }
+
     public double getShooterSpeed() {
         if (isSoftDisabled()) return 0;
         if (m_xbox.map(XboxController::getLeftBumper).orElse(false)) return -Math.sqrt(0.45); // -1 for general shooting, -sqrt(0.45) for amp

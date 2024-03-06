@@ -25,6 +25,9 @@ public final class Constants {
 
     public static final int FOUR_BAR_RIGHT_ID = 41;
     public static final int FOUR_BAR_LEFT_ID = 40;
+
+    public static final int FOUR_BAR_ENCODER_RIGHT_ID = 25;
+    public static final int FOUR_BAR_ENCODER_LEFT_ID = 26;
     
     public static final int SHOOTER_FRONT_ID = 33;
     public static final int SHOOTER_BACK_ID = 34;
