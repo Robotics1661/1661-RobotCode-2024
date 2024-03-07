@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.InitFourBarCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.TestFourBarCommand;
@@ -99,12 +100,15 @@ public class RobotContainer {
       m_fourBarSubsystem,
       () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
       m_combined_controller::getTestFourBarForward,
-      m_combined_controller::getTestFourBarBackward,
+      () -> false, // no backwards target for now
 
       m_combined_controller::getTestFourBarStepEnable,
       m_combined_controller::getTestFourBarStepForward,
       m_combined_controller::getTestFourBarStepBackward
     )); // */
+
+    new Trigger(m_combined_controller::getTestFourBarInitialize)
+      .whileTrue(new InitFourBarCommand(m_fourBarSubsystem));
 
 
     m_intakeSubsystem.setDefaultCommand(new IntakeCommand(

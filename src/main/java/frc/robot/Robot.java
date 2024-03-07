@@ -44,7 +44,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     for (int port = 5800; port <= 5805; port++) {
-      PortForwarder.add(port, "limelight.local", port);
+      PortForwarder.add(port, "limelight.local", port); // AprilTag limelight is ip 10.16.61.11
     }
 
     SmartDashboard.putNumber("voltage", 42);

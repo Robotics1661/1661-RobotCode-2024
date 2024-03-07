@@ -69,7 +69,7 @@ public class JoyXboxWrapper {
         return m_xbox.map(XboxController::getYButton).orElse(false);        
     }
 
-    public boolean getTestFourBarBackward() {
+    public boolean getTestFourBarInitialize() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getAButton).orElse(false);        
     }
