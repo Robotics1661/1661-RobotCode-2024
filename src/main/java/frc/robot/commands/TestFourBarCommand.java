@@ -55,12 +55,16 @@ public class TestFourBarCommand extends Command {
                 m_fourBarSubsystem.stop();
                 //m_fourBarSubsystem.setTargetPoint(SetPoints.TEST_BACKWARD);
             } else if (m_stepEnableSupplier.getAsBoolean()) {
-                if (m_stepForwardSupplier.getAsBoolean() && !stepButtonPressed) {
-                    stepButtonPressed = true;
-                    m_fourBarSubsystem.moveTargetForward();
-                } else if (m_stepBackwardSupplier.getAsBoolean() && !stepButtonPressed) {
-                    stepButtonPressed = true;
-                    m_fourBarSubsystem.moveTargetBackward();
+                if (m_stepForwardSupplier.getAsBoolean()) {
+                    if (!stepButtonPressed) {
+                        stepButtonPressed = true;
+                        m_fourBarSubsystem.moveTargetForward();
+                    }
+                } else if (m_stepBackwardSupplier.getAsBoolean()) {
+                    if (!stepButtonPressed) {
+                        stepButtonPressed = true;
+                        m_fourBarSubsystem.moveTargetBackward();
+                    }
                 } else {
                     stepButtonPressed = false;
                 }

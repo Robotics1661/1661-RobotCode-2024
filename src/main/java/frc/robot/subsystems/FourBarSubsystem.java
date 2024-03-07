@@ -48,6 +48,8 @@ public class FourBarSubsystem extends SubsystemBase {
     @SuppressWarnings("unused")
     private final CANcoder m_encoderLeft;
 
+    //private final Orchestra m_orchestra;
+
     private final DutyCycleOut m_rightDutyCycleRequest;
     private final DutyCycleOut m_leftDutyCycleRequest;
     private final StaticBrake m_brake = new StaticBrake();
@@ -105,13 +107,18 @@ public class FourBarSubsystem extends SubsystemBase {
         m_encoderRight = new CANcoder(FOUR_BAR_ENCODER_RIGHT_ID);
         m_encoderLeft = new CANcoder(FOUR_BAR_ENCODER_LEFT_ID);
 
+        /*m_orchestra = new Orchestra();
+        m_orchestra.addInstrument(m_motorRight);
+        m_orchestra.addInstrument(m_motorLeft);
+        m_orchestra.loadMusic("song1.chrp");*/
+
         // Setup PID and max voltage for motors
         {
             final VoltageConfigs voltageConf = new VoltageConfigs()
                 .withPeakForwardVoltage(MAX_VOLTAGE)
                 .withPeakReverseVoltage(-MAX_VOLTAGE);
             final Slot0Configs slot0Conf = new Slot0Configs() // normal configs
-                .withKP(0.1)
+                .withKP(0.5)
             ;
             final Slot1Configs slot1Conf = new Slot1Configs() // homing configs
                 .withKP(35.0)
@@ -167,11 +174,11 @@ public class FourBarSubsystem extends SubsystemBase {
             //System.out.println("Stopping four bar");
             m_motorRight.setControl(m_brake);
             m_motorLeft.setControl(m_brake);
-            SmartDashboard.putString("FourBar Mode", "Brake");
+            SmartDashboard.putString("FourBar/Mode", "Brake");
         } else {
             m_motorLeft.setControl(m_leftDutyCycleRequest.withOutput(-percent));
             m_motorRight.setControl(m_rightDutyCycleRequest.withOutput(percent));
-            SmartDashboard.putString("FourBar Mode", "Percent output: "+percent);
+            SmartDashboard.putString("FourBar/Mode", "Percent output: "+percent);
         }
     }
 
@@ -182,23 +189,27 @@ public class FourBarSubsystem extends SubsystemBase {
 
     public void setTargetPoint(SetPoints target) {
         setTargetPointInternal(target.leftPosition(), target.rightPosition());
-        SmartDashboard.putString("FourBar Mode", "SetPoint: "+target.name());
+        SmartDashboard.putString("FourBar/Mode", "SetPoint: "+target.name());
     }
 
     public void moveTargetForward() {
-        setTargetPointInternal(lastRightTarget + 0.01);
-        SmartDashboard.putString("FourBar Mode", "Moving to: "+lastRightTarget);
+        setTargetPointInternal(lastRightTarget + 4);
+        SmartDashboard.putString("FourBar/Mode", "Moving to: "+lastRightTarget);
     }
 
     public void moveTargetBackward() {
-        setTargetPointInternal(lastRightTarget - 0.01);
-        SmartDashboard.putString("FourBar Mode", "Moving to: "+lastRightTarget);
+        setTargetPointInternal(lastRightTarget - 4);
+        SmartDashboard.putString("FourBar/Mode", "Moving to: "+lastRightTarget);
     }
 
     public void enterInitMode() {
         if (initialized) {
             System.out.println("[4bar] Re-initializing, is this a bug?");
         }
+        //System.out.println("[4bar] playing");
+        //m_orchestra.play();
+        //TimeUtil.busySleep(5000);
+        //System.out.println("[4bar] done");
         stop();
         initialized = false;
 
@@ -231,7 +242,7 @@ public class FourBarSubsystem extends SubsystemBase {
         if (Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble()) < 0.0075
          && Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble()) < 0.0075) {
             System.out.println("[4bar] initialization complete!!!");
-            return false;
+            return true;
         }
 
         return false;
@@ -259,6 +270,12 @@ public class FourBarSubsystem extends SubsystemBase {
         m_rightPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.rightPosition());
         m_leftPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.leftPosition());
         initialized = true;
+        //m_orchestra.stop();
+        System.out.println("[4bar] Zeroed motors to home position!");
+    }
+
+    public boolean needsInitialization() {
+        return !initialized;
     }
 
     /**
@@ -389,10 +406,16 @@ public class FourBarSubsystem extends SubsystemBase {
         double error = expectedLeft - leftPos;
         SmartDashboard.putNumber("FourBar/Left prediction error", error);
         SmartDashboard.putNumber("FourBar/Left prediction", expectedLeft);
+
+        double rightMotorPos = m_motorRight.getPosition().getValueAsDouble();
+        double leftMotorPos = m_motorLeft.getPosition().getValueAsDouble();
+        SmartDashboard.putNumber("FourBar/Right Motor Encoder", rightMotorPos);
+        SmartDashboard.putNumber("FourBar/Left Motor Encoder", leftMotorPos);
     }
 
     public static enum SetPoints {
         ORIGIN(0.0),
+        INTAKE(-71.48779296875),
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

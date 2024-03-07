@@ -11,8 +11,8 @@ import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+//import edu.wpi.first.wpilibj.PowerDistribution;
+//import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,7 +30,7 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
-  private PowerDistribution pd;
+  //private PowerDistribution pd;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -49,7 +49,7 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("voltage", 42);
     SmartDashboard.putNumber("totaldraw", 42);
-    pd = new PowerDistribution(1, ModuleType.kRev);
+    //pd = new PowerDistribution(1, ModuleType.kRev);
   }
 
   /**
@@ -72,7 +72,7 @@ public class Robot extends TimedRobot {
     // Power and Temperature
     if (!Utils.isSimulation()) {
       SmartDashboard.putNumber("voltage", RobotController.getBatteryVoltage());
-      // SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
+      //SmartDashboard.putNumber("totaldraw", pd.getTotalCurrent());
       SmartDashboard.putNumber("temperature", RobotController.getCPUTemp());//pd.getTemperature());
     }
 

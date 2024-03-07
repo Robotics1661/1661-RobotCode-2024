@@ -41,4 +41,6 @@ public final class Constants {
     );
 
     public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.TEST_PATH_PLANNER_REPLAN;
+
+    public static final boolean ENABLE_LL_VISION_ESTIMATE = false;
 }

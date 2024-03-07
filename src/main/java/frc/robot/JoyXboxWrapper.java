@@ -9,7 +9,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class JoyXboxWrapper {
     private final Optional<XboxController> m_xbox;
     private final Joystick m_joystick; //flightstick
+    @SuppressWarnings("unused")
     private boolean m_soft_disabled;
+    @SuppressWarnings("unused")
     private final boolean m_auto_swap_mode = true; // If true, soft enable if twist is on +
 
     public JoyXboxWrapper(int xboxPort, int joystickPort) {
@@ -106,8 +108,8 @@ public class JoyXboxWrapper {
     }
 
     public boolean isSoftDisabled() {
-        if (true) return false; // FIXME: temporary to allow joystick-less use
-        if (this.m_auto_swap_mode) {
+        return false; // FIXME: temporary to allow joystick-less use
+        /*if (this.m_auto_swap_mode) {
             SmartDashboard.putNumber("twist", this.m_joystick.getThrottle());
             if (this.m_joystick.getThrottle() < -0.75) {
                 this.softEnable();
@@ -115,6 +117,6 @@ public class JoyXboxWrapper {
                 this.softDisable();
             }
         }
-        return this.m_soft_disabled;
+        return this.m_soft_disabled;*/
     }
 }
