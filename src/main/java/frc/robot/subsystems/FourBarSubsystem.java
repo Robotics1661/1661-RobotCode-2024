@@ -415,7 +415,7 @@ public class FourBarSubsystem extends SubsystemBase {
 
     public static enum SetPoints {
         ORIGIN(0.0),
-        INTAKE(-71.48779296875),
+        INTAKE(-68.75),
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.math.util.Units.degreesToRadians;
+import static frc.robot.Constants.ENABLE_LL_VISION_ESTIMATE;
 import static frc.robot.Constants.PATH_FOLLOW_CONFIG;
 
 import java.util.function.BooleanSupplier;
@@ -18,6 +20,7 @@ import com.pathplanner.lib.commands.PathfindHolonomic;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
@@ -32,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.subsystems.VisionSubsystem.PoseLatency;
 import frc.robot.util.MathUtil;
 
 /**
@@ -42,6 +46,7 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+    private final VisionSubsystem m_visionSystem = new VisionSubsystem();
 
     private static boolean mirrorAlliancePath() {
         // Boolean supplier that controls when the path will be mirrored for the red alliance
@@ -108,6 +113,10 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
         
         if (!Utils.isSimulation()) {
             SmartDashboard.putNumber("driveDraw", getTotalCurrentDraw());
+
+            if (ENABLE_LL_VISION_ESTIMATE) {
+                updatePoseEstimatorWithVisionBotPose();
+            }
         }
     }
 
@@ -186,5 +195,46 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
             DrivetrainSubsystem::mirrorAlliancePath,
             this // Reference to this subsystem to set requirements
         );
+    }
+
+    public void updatePoseEstimatorWithVisionBotPose() {
+        PoseLatency visionBotPose = m_visionSystem.getPoseLatency();
+        // invalid LL data
+        if (visionBotPose.pose2d().getX() == 0.0) {
+            return;
+        }
+
+        // distance from current pose to vision estimated pose
+        double poseDifference = m_odometry.getEstimatedPosition().getTranslation()
+            .getDistance(visionBotPose.pose2d().getTranslation());
+
+        if (m_visionSystem.areAnyTargetsValid()) {
+            double xyStds;
+            double degStds;
+            // multiple targets detected
+            if (m_visionSystem.getNumberOfTargetsVisible() >= 2) {
+                xyStds = 0.5;
+                degStds = 6;
+            }
+            // 1 target with large area and close to estimated pose
+            else if (m_visionSystem.getBestTargetArea() > 0.8 && poseDifference < 0.5) {
+                xyStds = 1.0;
+                degStds = 12;
+            }
+            // 1 target farther away and estimated pose is close
+            else if (m_visionSystem.getBestTargetArea() > 0.1 && poseDifference < 0.3) {
+                xyStds = 2.0;
+                degStds = 30;
+            }
+            // conditions don't match to add a vision measurement
+            else {
+                return;
+            }
+
+            m_odometry.setVisionMeasurementStdDevs(
+                VecBuilder.fill(xyStds, xyStds, degreesToRadians(degStds)));
+            m_odometry.addVisionMeasurement(visionBotPose.pose2d(),
+                visionBotPose.timestampSeconds());
+        }
     }
 }

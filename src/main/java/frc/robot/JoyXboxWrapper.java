@@ -61,12 +61,17 @@ public class JoyXboxWrapper {
         //return getFlightButton(5);
     }
 
+    public double getIntakeReverse() {
+        if (isSoftDisabled()) return 0.0;
+        return m_xbox.map(XboxController::getRightTriggerAxis).orElse(0.0);
+    }
+
     public double getFourBarSpeed() {
         if (isSoftDisabled()) return 0;
         return m_xbox.map(XboxController::getRightY).orElse(0.0);
     }
 
-    public boolean getTestFourBarForward() {
+    public boolean getTestFourBarOrigin() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getYButton).orElse(false);        
     }
@@ -76,19 +81,9 @@ public class JoyXboxWrapper {
         return m_xbox.map(XboxController::getAButton).orElse(false);        
     }
 
-    public boolean getTestFourBarStepEnable() {
-        if (isSoftDisabled()) return false;
-        return m_xbox.map(XboxController::getRightTriggerAxis).orElse(0.0) > 0.5;
-    }
-
-    public boolean getTestFourBarStepForward() {
+    public boolean getTestFourBarIntake() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getBButton).orElse(false);
-    }
-
-    public boolean getTestFourBarStepBackward() {
-        if (isSoftDisabled()) return false;
-        return m_xbox.map(XboxController::getXButton).orElse(false);
     }
 
     public double getShooterSpeed() {

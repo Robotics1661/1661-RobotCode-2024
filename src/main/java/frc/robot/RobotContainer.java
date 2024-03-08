@@ -99,12 +99,8 @@ public class RobotContainer {
     m_fourBarSubsystem.setDefaultCommand(new TestFourBarCommand(
       m_fourBarSubsystem,
       () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
-      m_combined_controller::getTestFourBarForward,
-      () -> false, // no backwards target for now
-
-      m_combined_controller::getTestFourBarStepEnable,
-      m_combined_controller::getTestFourBarStepForward,
-      m_combined_controller::getTestFourBarStepBackward
+      m_combined_controller::getTestFourBarOrigin,
+      m_combined_controller::getTestFourBarIntake
     )); // */
 
     new Trigger(m_combined_controller::getTestFourBarInitialize)
@@ -113,7 +109,8 @@ public class RobotContainer {
 
     m_intakeSubsystem.setDefaultCommand(new IntakeCommand(
       m_intakeSubsystem,
-      m_combined_controller::getIntake
+      m_combined_controller::getIntake,
+      () -> modifyAxis(m_combined_controller.getIntakeReverse(), "intake reverse", false)
     ));
 
     m_shooterSubsystem.setDefaultCommand(new ShooterCommand(

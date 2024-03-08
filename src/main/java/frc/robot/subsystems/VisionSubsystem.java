@@ -2,12 +2,13 @@ package frc.robot.subsystems;
 
 // TODO: implement & use
 
-//import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//import frc.robot.limelight.LimelightHelpers;
+import edu.wpi.first.math.geometry.Pose2d;
+import frc.robot.limelight.LimelightHelpers;
+import frc.robot.limelight.LimelightHelpers.PoseEstimate;
 
-public class VisionSubsystem extends SubsystemBase {
-/*    public final String m_name;
+public class VisionSubsystem {
+    public final String m_name;
+    private PoseEstimate estimate;
 
     public VisionSubsystem(String name) {
         this.m_name = name;
@@ -17,13 +18,22 @@ public class VisionSubsystem extends SubsystemBase {
         this("");
     }
 
-    public PoseSnapshot getPoseLatency() {
-        double tl = LimelightHelpers.getLatency_Pipeline(m_name);
-        double cl = LimelightHelpers.getLatency_Capture(m_name);
-
-        double latency = (tl/1000.0) - (cl/1000.0);
-        // todo
+    public boolean areAnyTargetsValid() {
+        return estimate.tagCount > 0;
     }
 
-    public static record PoseSnapshot(double latencySeconds, Pose2d pose2d);*/
+    public int getNumberOfTargetsVisible() {
+        return estimate.tagCount;
+    }
+
+    public double getBestTargetArea() {
+        return estimate.avgTagArea;
+    }
+
+    public PoseLatency getPoseLatency() {
+        estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(m_name);
+        return new PoseLatency(estimate.timestampSeconds, estimate.pose);
+    }
+
+    public static record PoseLatency(double timestampSeconds, Pose2d pose2d) {}
 }
