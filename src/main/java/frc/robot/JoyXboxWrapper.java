@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class JoyXboxWrapper {
     private final Optional<XboxController> m_xbox;
-    private final Joystick m_joystick; //flightstick
+    private final Optional<Joystick> m_joystick; //flightstick
     @SuppressWarnings("unused")
     private boolean m_soft_disabled;
     @SuppressWarnings("unused")
@@ -21,26 +21,32 @@ public class JoyXboxWrapper {
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
         //m_xbox = Optional.empty();
         m_xbox = Optional.of(new XboxController(xboxPort));
-        m_joystick = new Joystick(joystickPort);
+        //m_joystick = Optional.empty();
+        m_joystick = Optional.of(new Joystick(joystickPort));
         m_soft_disabled = controllerMode;
     }
 
     public double getLateralX() {
-        return isSoftDisabled() ? 0 : m_joystick.getX();
+        return isSoftDisabled() ? 0 : m_joystick.map(Joystick::getX).orElse(0.0);
     }
 
     public double getLateralY() {
-        return isSoftDisabled() ? 0 : m_joystick.getY();
+        return isSoftDisabled() ? 0 : m_joystick.map(Joystick::getY).orElse(0.0);
     }
 
     public double getRotation() {
         return isSoftDisabled() ?
         0 :
-        (m_joystick.getTrigger() ? m_joystick.getZ() : 0);
+        (m_joystick.map(Joystick::getTrigger).orElse(false)
+            ? m_joystick.map(Joystick::getZ).orElse(0.0)
+            : 0
+        );
     }
 
     private boolean getFlightButton(int id) {
-        return isSoftDisabled() ? false : m_joystick.getRawButton(id);
+        return isSoftDisabled()
+            ? false
+            : m_joystick.map(j -> j.getRawButton(id)).orElse(false);
     }
 
     public boolean getZeroButton() {
@@ -84,6 +90,11 @@ public class JoyXboxWrapper {
     public boolean getTestFourBarIntake() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getBButton).orElse(false);
+    }
+
+    public boolean getTestFourBarAmp() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getXButton).orElse(false);
     }
 
     public double getShooterSpeed() {

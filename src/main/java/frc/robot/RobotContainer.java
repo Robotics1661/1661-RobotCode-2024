@@ -100,7 +100,8 @@ public class RobotContainer {
       m_fourBarSubsystem,
       () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
       m_combined_controller::getTestFourBarOrigin,
-      m_combined_controller::getTestFourBarIntake
+      m_combined_controller::getTestFourBarIntake,
+      m_combined_controller::getTestFourBarAmp
     )); // */
 
     new Trigger(m_combined_controller::getTestFourBarInitialize)

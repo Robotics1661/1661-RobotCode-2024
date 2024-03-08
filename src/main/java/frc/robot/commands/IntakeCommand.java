@@ -30,11 +30,12 @@ public class IntakeCommand extends Command {
     @Override
     public void execute() {
         double reverse = m_reverseSupplier.getAsDouble();
+        boolean run = m_runSupplier.getAsBoolean();
         if (reverse > 0.001) {
+            m_previous = !run;
             m_intakeSubsystem.reverse(reverse);
             return;
         }
-        boolean run = m_runSupplier.getAsBoolean();
         if (run != m_previous) {
             m_previous = run;
             if (run) {

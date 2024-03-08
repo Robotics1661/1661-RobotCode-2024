@@ -13,16 +13,19 @@ public class TestFourBarCommand extends Command {
     private final DoubleSupplier m_speedSupplier;
     private final BooleanSupplier m_goOriginSupplier;
     private final BooleanSupplier m_goIntakeSupplier;
+    private final BooleanSupplier m_goAmpSupplier;
     private boolean stopped = false;
 
     public TestFourBarCommand(
         FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier,
-        BooleanSupplier goOriginSupplier, BooleanSupplier goIntakeSupplier
+        BooleanSupplier goOriginSupplier, BooleanSupplier goIntakeSupplier,
+        BooleanSupplier goAmpSupplier
         ) {
         this.m_fourBarSubsystem = fourBarSubsystem;
         this.m_speedSupplier = speedSupplier;
         this.m_goOriginSupplier = goOriginSupplier;
         this.m_goIntakeSupplier = goIntakeSupplier;
+        this.m_goAmpSupplier = goAmpSupplier;
 
         addRequirements(m_fourBarSubsystem);
     }
@@ -35,7 +38,7 @@ public class TestFourBarCommand extends Command {
             stopped = false;
         } else {
             if (!stopped) {
-                m_fourBarSubsystem.stop();
+                m_fourBarSubsystem.activeStop();
                 stopped = true;
             }
 
@@ -43,14 +46,16 @@ public class TestFourBarCommand extends Command {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.ORIGIN);
             } else if (m_goIntakeSupplier.getAsBoolean()) {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.INTAKE);
+            } else if (m_goAmpSupplier.getAsBoolean()) {
+                m_fourBarSubsystem.setTargetPoint(SetPoints.AMP);
             } else { // safety stop - require button to be held in for motion
-                m_fourBarSubsystem.stop();
+                m_fourBarSubsystem.activeStop();
             }
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_fourBarSubsystem.stop();
+        m_fourBarSubsystem.endOfRoutineStop();
     }
 }

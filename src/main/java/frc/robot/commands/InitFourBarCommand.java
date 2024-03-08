@@ -41,6 +41,6 @@ public class InitFourBarCommand extends Command {
     public void end(boolean interrupted) {
         super.end(interrupted);
 
-        m_fourBarSubsystem.stop();
+        m_fourBarSubsystem.endOfRoutineStop();
     }
 }
