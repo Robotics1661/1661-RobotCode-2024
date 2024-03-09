@@ -32,6 +32,8 @@ public final class Constants {
     public static final int SHOOTER_FRONT_ID = 33;
     public static final int SHOOTER_BACK_ID = 34;
 
+    public static final int CLIMBER_ID = 35;
+
     public static final HolonomicPathFollowerConfig PATH_FOLLOW_CONFIG = new HolonomicPathFollowerConfig(
         new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
         new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
@@ -40,8 +42,11 @@ public final class Constants {
         new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
     );
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.TEST_PATH_PLANNER_REPLAN;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.SINGLE_SPEAKER_SHOT;
 
     public static final boolean ENABLE_LL_VISION_ESTIMATE = false;
     public static final boolean FOUR_BAR_POSITION_HOLD_ASSIST = true;
+
+    // WARN: make sure to set to false before any matches
+    public static final boolean DISABLE_SWERVE = false;
 }

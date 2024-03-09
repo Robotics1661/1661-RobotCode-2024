@@ -6,6 +6,7 @@ package frc.robot;
 
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
+import static frc.robot.util.SimulationDebugger.simDbg;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,13 +36,18 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.ClimberCommand;
 import frc.robot.commands.InitFourBarCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShooterCommand;
-import frc.robot.commands.TestFourBarCommand;
+import frc.robot.commands.autos.pieces.TimedIntakeCommand;
+import frc.robot.commands.FourBarCommand;
 import frc.robot.commands.sysid.FourBarSysIdCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.AutonomousInput;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DrivetrainSubsystem;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -60,6 +66,14 @@ public class RobotContainer {
   private final FourBarSubsystem m_fourBarSubsystem = new FourBarSubsystem();
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
+
+  private final AutonomousInput m_autonomousInput = new AutonomousInput(
+    m_drivetrainSubsystem,
+    m_intakeSubsystem,
+    m_fourBarSubsystem,
+    m_shooterSubsystem
+  );
 
   // Controllers
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
@@ -96,15 +110,16 @@ public class RobotContainer {
     new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
 
     //*
-    m_fourBarSubsystem.setDefaultCommand(new TestFourBarCommand(
+    m_fourBarSubsystem.setDefaultCommand(new FourBarCommand(
       m_fourBarSubsystem,
       () -> modifyAxis(m_combined_controller.getFourBarSpeed(), "four_bar_speed", true),
-      m_combined_controller::getTestFourBarOrigin,
-      m_combined_controller::getTestFourBarIntake,
-      m_combined_controller::getTestFourBarAmp
+      m_combined_controller::getFourBarOrigin,
+      m_combined_controller::getFourBarIntake,
+      m_combined_controller::getFourBarAmp,
+      m_combined_controller::getFourBarSpeaker
     )); // */
 
-    new Trigger(m_combined_controller::getTestFourBarInitialize)
+    new Trigger(m_combined_controller::getFourBarInitialize)
       .whileTrue(new InitFourBarCommand(m_fourBarSubsystem));
 
 
@@ -116,7 +131,17 @@ public class RobotContainer {
 
     m_shooterSubsystem.setDefaultCommand(new ShooterCommand(
       m_shooterSubsystem,
-      () -> modifyAxis(m_combined_controller.getShooterSpeed(), "shooter", true)
+      m_combined_controller::getAmpShot,
+      m_combined_controller::getSpeakerShot,
+      m_combined_controller::getTestShooterSpeedIncrease,
+      m_combined_controller::getTestShooterSpeedDecrease,
+      TimedIntakeCommand.makeScheduler(m_intakeSubsystem)
+    ));
+
+    m_climberSubsystem.setDefaultCommand(new ClimberCommand(
+      m_climberSubsystem,
+      m_combined_controller::getClimberExtend,
+      m_combined_controller::getClimberRetract
     ));
 
     if (Utils.isSimulation()) {
@@ -133,7 +158,11 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem);
+    return new InitFourBarCommand(m_fourBarSubsystem)
+      .andThen(
+        Constants.AUTONOMOUS_MODE.getCommand(m_autonomousInput),
+        new InstantCommand(() -> simDbg("Auto complete!"))
+      );
   }
 
   private static double deadband(double value, double deadband) {
@@ -181,7 +210,7 @@ public class RobotContainer {
   /**
    * 
    * @param parameterNodes contents of <parameters/> tag
-   * @param parameterArray String[3]
+   * @param parameterArray String[1]
    */
   private static void readAutoNamedCommandParameters(NodeList parameterNodes, String[] parameterArray) {
     int idx = 0;
@@ -224,7 +253,7 @@ public class RobotContainer {
         @Nullable String methodName = null;
         @Nullable String returnType = null;
         boolean foundConstructor = false;
-        String[] parameters = new String[]{null, null, null};
+        String[] parameters = new String[]{null};
 
         for (int j = 0; j < commandChildren.getLength(); j++) {
           Node inner = commandChildren.item(j);
@@ -272,13 +301,13 @@ public class RobotContainer {
             Class<?> clazz = classLoader.loadClass(className);
             var constructor = clazz.getConstructor(paramClasses);
             constructor.setAccessible(true);
-            NamedCommands.registerCommand(commandName, (Command) constructor.newInstance(m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
+            NamedCommands.registerCommand(commandName, (Command) constructor.newInstance(m_autonomousInput));
             System.out.println("Registered named command %s".formatted(commandName));
           } else if (methodName != null && returnType != null) {
             Class<?> clazz = classLoader.loadClass(className);
             var method = clazz.getMethod(methodName, paramClasses);
             method.setAccessible(true);
-            NamedCommands.registerCommand(commandName, (Command) method.invoke(null, m_drivetrainSubsystem, m_fourBarSubsystem, m_intakeSubsystem));
+            NamedCommands.registerCommand(commandName, (Command) method.invoke(null, m_autonomousInput));
             System.out.println("Registered named command %s".formatted(commandName));
           } else {
             System.err.println("Failed to register named command '"+commandName+"', no constructor or method found");

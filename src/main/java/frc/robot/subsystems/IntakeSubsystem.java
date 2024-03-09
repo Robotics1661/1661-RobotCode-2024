@@ -53,7 +53,10 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public void reverse(double percent) {
-        m_motor.set(clamp(percent, 0, 1) * -0.2);
+        double speed = clamp(percent, 0, 1) * -0.4;
+        currentSpeed = speed;
+        targetSpeed = speed;
+        m_motor.set(speed);
         lerpMode = false;
     }
 

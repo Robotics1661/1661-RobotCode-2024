@@ -69,14 +69,14 @@ public class FourBarSubsystem extends SubsystemBase {
     private SetPoints lastSetPoint = SetPoints.ORIGIN;
     private double lastRightTarget = SetPoints.ORIGIN.rightPosition();
 
-    private static final double MAX_VOLTAGE = 2.0;
+    private static final double MAX_VOLTAGE = 3.0;
     private static final double GEAR_RATIO = 95; // TO-DO exact
 
     private final double RIGHT_HOMING_TARGET = -0.098876953125;
     private final double LEFT_HOMING_TARGET = rightEncoderPositionToLeftEncoderPosition(RIGHT_HOMING_TARGET);
 
     private final double FORWARD_RIGHT_MOTOR_LIMIT = 88.17041015625;
-    private final double BACKWARD_RIGHT_MOTOR_LIMIT = -69.5;
+    private final double BACKWARD_RIGHT_MOTOR_LIMIT = -77.0;
 
     // assigning -BR to FR and -FR to BL is intentional, it needs to be swapped due to negative
     private final double FORWARD_LEFT_MOTOR_LIMIT = -BACKWARD_RIGHT_MOTOR_LIMIT;
@@ -297,6 +297,11 @@ public class FourBarSubsystem extends SubsystemBase {
         System.out.println("WAKEY WAKEY");
     }
 
+    public boolean isClosedLoopErrorWithin(double buffer) {
+        return Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble()) < buffer
+            && Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble()) < buffer;
+    }
+
     /**
      * 
      * @return completion
@@ -310,8 +315,7 @@ public class FourBarSubsystem extends SubsystemBase {
         m_motorRight.setControl(m_rightPositionVoltageRequest.withSlot(1).withPosition(RIGHT_HOMING_TARGET));
         m_motorLeft.setControl(m_leftPositionVoltageRequest.withSlot(1).withPosition(LEFT_HOMING_TARGET));
 
-        if (Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble()) < 0.0075
-         && Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble()) < 0.0075) {
+        if (isClosedLoopErrorWithin(0.0075)) {
             System.out.println("[4bar] initialization complete!!!");
             return true;
         }
@@ -385,7 +389,7 @@ public class FourBarSubsystem extends SubsystemBase {
             m_motorRight.setControl(m_brake);
         }
         boolean slowMode = m_motorRight.getPosition().getValueAsDouble() > 70
-            && lastSetPoint != SetPoints.AMP;
+            && (lastSetPoint != SetPoints.AMP && lastSetPoint != SetPoints.SPEAKER);
         SmartDashboard.putBoolean("FourBar/Slow Mode", slowMode);
 
         lastRightTarget = rightTarget;
@@ -459,8 +463,8 @@ public class FourBarSubsystem extends SubsystemBase {
     private static double rightEncoderPositionToLeftEncoderPosition(double rightPosition) {
         // apply negated transform (left varies negatively proportional to right)
 
-        final double leftCal = -0.154052734375;
-        final double rightCal = -0.34228515625;
+        final double leftCal = -0.448242;//-0.154052734375;
+        final double rightCal = -0.064697;//-0.34228515625;
 
         double normalizedPosition = rightPosition - rightCal;
         double offset = -normalizedPosition;
@@ -503,8 +507,9 @@ public class FourBarSubsystem extends SubsystemBase {
 
     public static enum SetPoints {
         ORIGIN(0.0),
-        INTAKE(-68.75),
-        AMP(88.17041015625)
+        INTAKE(-75.5),
+        AMP(86.17041015625),
+        SPEAKER(83.5)
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

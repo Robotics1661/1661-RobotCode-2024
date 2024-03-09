@@ -19,22 +19,25 @@ public class JoyXboxWrapper {
     }
 
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
-        //m_xbox = Optional.empty();
-        m_xbox = Optional.of(new XboxController(xboxPort));
-        //m_joystick = Optional.empty();
-        m_joystick = Optional.of(new Joystick(joystickPort));
+        m_xbox = Optional.empty();
+        //m_xbox = Optional.of(new XboxController(xboxPort));
+        m_joystick = Optional.empty();
+        //m_joystick = Optional.of(new Joystick(joystickPort));
         m_soft_disabled = controllerMode;
     }
 
     public double getLateralX() {
+        if (Constants.DISABLE_SWERVE) return 0;
         return isSoftDisabled() ? 0 : m_joystick.map(Joystick::getX).orElse(0.0);
     }
 
     public double getLateralY() {
+        if (Constants.DISABLE_SWERVE) return 0;
         return isSoftDisabled() ? 0 : m_joystick.map(Joystick::getY).orElse(0.0);
     }
 
     public double getRotation() {
+        if (Constants.DISABLE_SWERVE) return 0;
         return isSoftDisabled() ?
         0 :
         (m_joystick.map(Joystick::getTrigger).orElse(false)
@@ -51,6 +54,10 @@ public class JoyXboxWrapper {
 
     public boolean getZeroButton() {
         return getFlightButton(7);
+    }
+
+    public boolean getFourBarInitialize() {
+        return getFlightButton(8);
     }
 
     public boolean getBrakeButton() {
@@ -77,31 +84,69 @@ public class JoyXboxWrapper {
         return m_xbox.map(XboxController::getRightY).orElse(0.0);
     }
 
-    public boolean getTestFourBarOrigin() {
+    public boolean getFourBarOrigin() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getYButton).orElse(false);        
     }
 
-    public boolean getTestFourBarInitialize() {
-        if (isSoftDisabled()) return false;
-        return m_xbox.map(XboxController::getAButton).orElse(false);        
-    }
-
-    public boolean getTestFourBarIntake() {
+    public boolean getFourBarIntake() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getBButton).orElse(false);
     }
 
-    public boolean getTestFourBarAmp() {
+    public boolean getFourBarAmp() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getXButton).orElse(false);
     }
 
-    public double getShooterSpeed() {
+    public boolean getFourBarSpeaker() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getAButton).orElse(false);
+    }
+
+    public boolean getClimberExtend() {
+        if (isSoftDisabled()) return false;
+        int pov = m_joystick.map(Joystick::getPOV).orElse(-1);
+        if (pov == -1) return false;
+        return pov == 0 || pov == 45 || pov == 315;
+    }
+
+    public boolean getClimberRetract() {
+        if (isSoftDisabled()) return false;
+        int pov = m_joystick.map(Joystick::getPOV).orElse(-1);
+        if (pov == -1) return false;
+        return pov == 180 || pov == 180+45 || pov == 180-45;
+    }
+
+    public boolean getTestShooterSpeedIncrease() {
+        if (isSoftDisabled()) return false;
+        int pov = m_xbox.map(XboxController::getPOV).orElse(-1);
+        if (pov == -1) return false;
+        return pov == 0;
+    }
+
+    public boolean getTestShooterSpeedDecrease() {
+        if (isSoftDisabled()) return false;
+        int pov = m_xbox.map(XboxController::getPOV).orElse(-1);
+        if (pov == -1) return false;
+        return pov == 180;
+    }
+
+    public boolean getAmpShot() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getLeftBumper).orElse(false);
+    }
+
+    public boolean getSpeakerShot() {
+        if (isSoftDisabled()) return false;
+        return m_xbox.map(XboxController::getLeftTriggerAxis).orElse(0.0) > 0.5;
+    }
+
+    /*public double getShooterSpeed() {
         if (isSoftDisabled()) return 0;
         if (m_xbox.map(XboxController::getLeftBumper).orElse(false)) return -Math.sqrt(0.45); // -1 for general shooting, -sqrt(0.45) for amp
         return m_xbox.map(XboxController::getLeftY).orElse(0.0);
-    }
+    }*/
 
     public void softDisable() {
         SmartDashboard.putString("controller_mode", "Soft Disabled");

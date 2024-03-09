@@ -75,6 +75,9 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
             DrivetrainSubsystem::mirrorAlliancePath,
             this // Reference to this subsystem to set requirements
         );
+
+        // Hacky way to schedule code into the odometry thread
+        registerTelemetry((state) -> odometryUpdate());
     }
     public DrivetrainSubsystem(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         this(driveTrainConstants, 0, modules);
@@ -104,6 +107,12 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
         return total;
     }
 
+    private void odometryUpdate() {
+        if (ENABLE_LL_VISION_ESTIMATE) {
+            updatePoseEstimatorWithVisionBotPose();
+        }
+    }
+
     @Override
     public void periodic() {
         final Pigeon2 pigeon = getPigeon2();
@@ -113,10 +122,6 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
         
         if (!Utils.isSimulation()) {
             SmartDashboard.putNumber("driveDraw", getTotalCurrentDraw());
-
-            if (ENABLE_LL_VISION_ESTIMATE) {
-                updatePoseEstimatorWithVisionBotPose();
-            }
         }
     }
 

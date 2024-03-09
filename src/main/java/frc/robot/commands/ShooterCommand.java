@@ -1,34 +1,93 @@
 package frc.robot.commands;
 
-import java.util.function.DoubleSupplier;
+import static frc.robot.util.MathUtil.clamp;
 
+import java.util.function.BooleanSupplier;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.commands.autos.pieces.TimedIntakeCommand.TimedIntakeScheduler;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.util.MathUtil;
 
 public class ShooterCommand extends Command {
     private final ShooterSubsystem m_shooterSubsystem;
 
-    private final DoubleSupplier m_speedSupplier;
+    private final BooleanSupplier m_ampShotSupplier;
+    private final BooleanSupplier m_speakerShotSupplier;
+    private final BooleanSupplier m_increaseShooterSpeedSupplier;
+    private final BooleanSupplier m_decreaseShooterSpeedSupplier;
 
+    private final TimedIntakeScheduler m_intakeScheduler;
+
+    private final double AMP_SPEED = 0.375;
+
+    private double currentShooterTargetSpeed = 0.7;
     private double currentSpeed = 0;
+    private Mode mode;
+    private boolean scheduledIntake = false;
+    private boolean speedChangePressed = false;
 
-    public ShooterCommand(ShooterSubsystem shooterSubsystem, DoubleSupplier speedSupplier) {
+    public ShooterCommand(
+        ShooterSubsystem shooterSubsystem,
+        BooleanSupplier ampShotSupplier,
+        BooleanSupplier speakerShotSupplier,
+        BooleanSupplier increaseShooterSpeedSupplier,
+        BooleanSupplier decreaseShooterSpeedSupplier,
+        TimedIntakeScheduler intakeScheduler
+    ) {
         this.m_shooterSubsystem = shooterSubsystem;
-        this.m_speedSupplier = speedSupplier;
+        this.m_ampShotSupplier = ampShotSupplier;
+        this.m_speakerShotSupplier = speakerShotSupplier;
+        this.m_increaseShooterSpeedSupplier = increaseShooterSpeedSupplier;
+        this.m_decreaseShooterSpeedSupplier = decreaseShooterSpeedSupplier;
+        this.m_intakeScheduler = intakeScheduler;
 
         addRequirements(m_shooterSubsystem);
     }
 
     @Override
     public void execute() {
-        double targetSpeed = m_speedSupplier.getAsDouble();
-        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.05);
-        if (Math.abs(currentSpeed) < 0.01 && Math.abs(targetSpeed) < 0.01) {
-            currentSpeed = 0;
+        SmartDashboard.putNumber("Shooter/Target Speed", currentShooterTargetSpeed);
+        if (m_increaseShooterSpeedSupplier.getAsBoolean()) {
+            if (!speedChangePressed) {
+                currentShooterTargetSpeed += 0.05;
+                speedChangePressed = true;
+            }
+        } else if (m_decreaseShooterSpeedSupplier.getAsBoolean()) {
+            if (!speedChangePressed) {
+                currentShooterTargetSpeed -= 0.05;
+                speedChangePressed = true;
+            }
+        } else {
+            speedChangePressed = false;
         }
-        if (Math.abs(currentSpeed) > 0.99) {
-            currentSpeed = 1 * Math.signum(currentSpeed);
+        currentShooterTargetSpeed = clamp(currentShooterTargetSpeed, 0, 1);
+
+        double targetSpeed = 0;
+        mode = Mode.OTHER;
+        if (m_ampShotSupplier.getAsBoolean()) {
+            targetSpeed = AMP_SPEED * -1;
+            mode = Mode.AMP;
+        } else if (m_speakerShotSupplier.getAsBoolean()) {
+            targetSpeed = currentShooterTargetSpeed * -1;
+            mode = Mode.SHOOTER;
+        }
+
+        if (!mode.intakeFollows) {
+            scheduledIntake = false;
+        }
+
+        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.05);
+        if (Math.abs(targetSpeed) < 0.01) {
+            targetSpeed = 0;
+        }
+        if (Math.abs(currentSpeed - targetSpeed) < 0.01) {
+            currentSpeed = targetSpeed;
+            if (mode.intakeFollows && !scheduledIntake) {
+                scheduledIntake = true;
+                m_intakeScheduler.schedule(0.5, 2.0);
+            }
         }
         //System.out.println("Shooter speed: "+currentSpeed);
         m_shooterSubsystem.setSpeed(currentSpeed);
@@ -37,5 +96,17 @@ public class ShooterCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         m_shooterSubsystem.stop();
+    }
+
+    private static enum Mode {
+        SHOOTER(true),
+        AMP(true),
+        OTHER(false)
+        ;
+        public final boolean intakeFollows;
+
+        private Mode(boolean intakeFollows) {
+            this.intakeFollows = intakeFollows;
+        }
     }
 }

@@ -4,7 +4,8 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.subsystems.DrivetrainSubsystem;
+import frc.robot.commands.autos.SingleSpeakerShotAutoCommand;
+import frc.robot.subsystems.AutonomousInput;
 
 /* Just some convenient abstraction for autonomous modes */
 public enum AutonomousMode {
@@ -13,14 +14,20 @@ public enum AutonomousMode {
     FULL_20_POINT(Full20PointAutoCommand::new, "Place cube at top rung, drive to charge station, keep going, then drive back to charge station"),
     PLACE_CUBE_AND_TAXI_LONG(PlaceCubeAndTaxiLongCommand::new, "Place cube at top rung and taxi out of community area"),
     PLACE_CUBE_AND_JUST_BALANCE(PlaceCubeAndJustBalanceCommand::new, "Place cube at top rung and balance on charge station"),*/
-    NONE(ds -> new InstantCommand(), "Do nothing"),
-    TEST_PATH_PLANNER(ds -> new PathPlannerAuto("Test Auto"), "PathPlanner test"),
-    TEST_PATH_PLANNER_REPLAN(ds -> new PathPlannerAuto("Replanning Auto"), "PathPlanner replabbubg test")
+    TEST_PATH_PLANNER("Test Auto", "PathPlanner test"),
+    TEST_PATH_PLANNER_REPLAN("Replanning Auto", "PathPlanner replanning test"),
+    // does nothing because this should be chained after an InitFourBarCommand
+    INITIALIZE_4BAR((ai) -> new InstantCommand(), "Initialize Four Bar"),
+    SINGLE_SPEAKER_SHOT(SingleSpeakerShotAutoCommand::create, "Single speaker shot"),
     ;
-    private final SimpleCommandBuilder builder;
+    private final CommandBuilder builder;
     public final String description;
 
-    AutonomousMode(SimpleCommandBuilder builder, String description) {
+    AutonomousMode(String pathPlannerName, String description) {
+        this(ai -> new PathPlannerAuto(pathPlannerName), description);
+    }
+
+    AutonomousMode(CommandBuilder builder, String description) {
         //this((ds, as, cs) -> builder.create(ds), description);
         this.builder = builder;
         this.description = description;
@@ -31,17 +38,12 @@ public enum AutonomousMode {
         this.description = description;
     }*/
 
-    public Command getCommand(DrivetrainSubsystem drivetrainSubsystem/*, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem*/) {
-        return this.builder.create(drivetrainSubsystem/*, armSubsystem, clawSubsystem*/);
+    public Command getCommand(AutonomousInput autonomousInput) {
+        return this.builder.create(autonomousInput);
     }
 
     @FunctionalInterface
-    interface SimpleCommandBuilder {
-        public Command create(DrivetrainSubsystem drivetrainSubsystem);
-    }
-
-    /*@FunctionalInterface
     interface CommandBuilder {
-        public Command create(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem);
-    }*/
+        public Command create(AutonomousInput autonomousInput);
+    }
 }

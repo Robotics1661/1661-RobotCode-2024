@@ -7,25 +7,27 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.FourBarSubsystem;
 import frc.robot.subsystems.FourBarSubsystem.SetPoints;
 
-public class TestFourBarCommand extends Command {
+public class FourBarCommand extends Command {
     private final FourBarSubsystem m_fourBarSubsystem;
 
     private final DoubleSupplier m_speedSupplier;
     private final BooleanSupplier m_goOriginSupplier;
     private final BooleanSupplier m_goIntakeSupplier;
     private final BooleanSupplier m_goAmpSupplier;
+    private final BooleanSupplier m_goSpeakerSupplier;
     private boolean stopped = false;
 
-    public TestFourBarCommand(
+    public FourBarCommand(
         FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier,
         BooleanSupplier goOriginSupplier, BooleanSupplier goIntakeSupplier,
-        BooleanSupplier goAmpSupplier
+        BooleanSupplier goAmpSupplier, BooleanSupplier goSpeakerSupplier
         ) {
         this.m_fourBarSubsystem = fourBarSubsystem;
         this.m_speedSupplier = speedSupplier;
         this.m_goOriginSupplier = goOriginSupplier;
         this.m_goIntakeSupplier = goIntakeSupplier;
         this.m_goAmpSupplier = goAmpSupplier;
+        this.m_goSpeakerSupplier = goSpeakerSupplier;
 
         addRequirements(m_fourBarSubsystem);
     }
@@ -48,6 +50,8 @@ public class TestFourBarCommand extends Command {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.INTAKE);
             } else if (m_goAmpSupplier.getAsBoolean()) {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.AMP);
+            } else if (m_goSpeakerSupplier.getAsBoolean()) {
+                m_fourBarSubsystem.setTargetPoint(SetPoints.SPEAKER);
             } else { // safety stop - require button to be held in for motion
                 m_fourBarSubsystem.activeStop();
             }

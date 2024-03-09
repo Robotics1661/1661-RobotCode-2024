@@ -122,9 +122,9 @@ public class INamedCommandProcessor extends AbstractProcessor {
                 .formatted(repr(e), e.getReturnType().getKind()));
         }
         List<? extends VariableElement> params = e.getParameters();
-        String[] expectedParams = new String[] {"frc.robot.subsystems.DrivetrainSubsystem", "frc.robot.subsystems.FourBarSubsystem", "frc.robot.subsystems.IntakeSubsystem"};
+        String[] expectedParams = new String[] {"frc.robot.subsystems.AutonomousInput"};
         if (params.size() != expectedParams.length) {
-            throw new CompileException("@INamedCommand expects a method with the signature `(DriveTrainSubsystem, FourBarSubsystem, IntakeSubsystem) -> Command`, %s has the wrong number of parameters"
+            throw new CompileException("@INamedCommand expects a method with the signature `(AutonomousInput) -> Command`, %s has the wrong number of parameters"
                 .formatted(repr(e)));
         }
         for (int i = 0; i < expectedParams.length; i++) {
@@ -132,12 +132,12 @@ public class INamedCommandProcessor extends AbstractProcessor {
             VariableElement param = params.get(i);
             TypeMirror type = param.asType();
             if (type.getKind() != TypeKind.DECLARED) {
-                throw new CompileException("@INamedCommand expects a method with the signature `(DriveTrainSubsystem, FourBarSubsystem, IntakeSubsystem) -> Command`, %s does not match"
+                throw new CompileException("@INamedCommand expects a method with the signature `(AutonomousInput) -> Command`, %s does not match"
                     .formatted(repr(e)));
             }
             TypeElement typeElement = (TypeElement) ((DeclaredType) type).asElement();
             if (!typeElement.getQualifiedName().contentEquals(expectedName)) {
-                throw new CompileException("@INamedCommand expects a method with the signature `(DriveTrainSubsystem, FourBarSubsystem, IntakeSubsystem) -> Command`, %s does not match"
+                throw new CompileException("@INamedCommand expects a method with the signature `(AutonomousInput) -> Command`, %s does not match"
                     .formatted(repr(e)));
             }
         }
