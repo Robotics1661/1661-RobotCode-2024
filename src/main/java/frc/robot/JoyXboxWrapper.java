@@ -19,10 +19,10 @@ public class JoyXboxWrapper {
     }
 
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
-        m_xbox = Optional.empty();
-        //m_xbox = Optional.of(new XboxController(xboxPort));
-        m_joystick = Optional.empty();
-        //m_joystick = Optional.of(new Joystick(joystickPort));
+        //m_xbox = Optional.empty();
+        m_xbox = Optional.of(new XboxController(xboxPort));
+        //m_joystick = Optional.empty();
+        m_joystick = Optional.of(new Joystick(joystickPort));
         m_soft_disabled = controllerMode;
     }
 
