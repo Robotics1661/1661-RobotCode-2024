@@ -46,8 +46,8 @@ public class AutoShooterCommand extends ShooterCommand {
             () -> {
                 return target == Target.SPEAKER;
             },
-            () -> false,
-            () -> false,
+            //() -> false,
+            //() -> false,
             intakeScheduler
         );
     }

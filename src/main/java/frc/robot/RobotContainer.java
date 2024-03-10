@@ -133,8 +133,8 @@ public class RobotContainer {
       m_shooterSubsystem,
       m_combined_controller::getAmpShot,
       m_combined_controller::getSpeakerShot,
-      m_combined_controller::getTestShooterSpeedIncrease,
-      m_combined_controller::getTestShooterSpeedDecrease,
+      //m_combined_controller::getTestShooterSpeedIncrease,
+      //m_combined_controller::getTestShooterSpeedDecrease,
       TimedIntakeCommand.makeScheduler(m_intakeSubsystem)
     ));
 

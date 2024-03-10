@@ -15,8 +15,8 @@ public class ShooterCommand extends Command {
 
     private final BooleanSupplier m_ampShotSupplier;
     private final BooleanSupplier m_speakerShotSupplier;
-    private final BooleanSupplier m_increaseShooterSpeedSupplier;
-    private final BooleanSupplier m_decreaseShooterSpeedSupplier;
+    //private final BooleanSupplier m_increaseShooterSpeedSupplier;
+    //private final BooleanSupplier m_decreaseShooterSpeedSupplier;
 
     private final TimedIntakeScheduler m_intakeScheduler;
 
@@ -26,21 +26,21 @@ public class ShooterCommand extends Command {
     private double currentSpeed = 0;
     private Mode mode;
     private boolean scheduledIntake = false;
-    private boolean speedChangePressed = false;
+    //private boolean speedChangePressed = false;
 
     public ShooterCommand(
         ShooterSubsystem shooterSubsystem,
         BooleanSupplier ampShotSupplier,
         BooleanSupplier speakerShotSupplier,
-        BooleanSupplier increaseShooterSpeedSupplier,
-        BooleanSupplier decreaseShooterSpeedSupplier,
+        //BooleanSupplier increaseShooterSpeedSupplier,
+        //BooleanSupplier decreaseShooterSpeedSupplier,
         TimedIntakeScheduler intakeScheduler
     ) {
         this.m_shooterSubsystem = shooterSubsystem;
         this.m_ampShotSupplier = ampShotSupplier;
         this.m_speakerShotSupplier = speakerShotSupplier;
-        this.m_increaseShooterSpeedSupplier = increaseShooterSpeedSupplier;
-        this.m_decreaseShooterSpeedSupplier = decreaseShooterSpeedSupplier;
+        //this.m_increaseShooterSpeedSupplier = increaseShooterSpeedSupplier;
+        //this.m_decreaseShooterSpeedSupplier = decreaseShooterSpeedSupplier;
         this.m_intakeScheduler = intakeScheduler;
 
         addRequirements(m_shooterSubsystem);
