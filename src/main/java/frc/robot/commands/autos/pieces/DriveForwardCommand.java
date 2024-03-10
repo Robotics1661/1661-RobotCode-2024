@@ -3,6 +3,7 @@ package frc.robot.commands.autos.pieces;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
+import static frc.robot.util.AutonomousDebugger.autoDbg;
 
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
@@ -33,6 +34,7 @@ public class DriveForwardCommand extends Command {
         super.initialize();
 
         startTime = Timer.getFPGATimestamp();
+        autoDbg("Starting drive forward");
     }
 
     @Override
@@ -57,5 +59,6 @@ public class DriveForwardCommand extends Command {
         super.end(interrupted);
 
         m_drivetrainSubsystem.setControl(m_brake);
+        autoDbg("Drive forward complete");
     }
 }

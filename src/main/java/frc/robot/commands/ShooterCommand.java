@@ -46,6 +46,19 @@ public class ShooterCommand extends Command {
         addRequirements(m_shooterSubsystem);
     }
 
+    // Provided for subclasses to override
+    protected double customTargetSpeed() {
+        return Double.NaN;
+    }
+
+    // Provided for subclasses to override
+    protected void onSpeedReached() {}
+
+    public ShooterCommand withInitialSpeed(double initialSpeed) {
+        this.currentSpeed = initialSpeed;
+        return this;
+    }
+
     @Override
     public void execute() {
         SmartDashboard.putNumber("Shooter/Target Speed", currentShooterTargetSpeed);
@@ -73,6 +86,13 @@ public class ShooterCommand extends Command {
             targetSpeed = currentShooterTargetSpeed * -1;
             mode = Mode.SHOOTER;
         }
+        {
+            double customTargetSpeed = customTargetSpeed();
+            if (!Double.isNaN(customTargetSpeed)) {
+                targetSpeed = customTargetSpeed;
+                mode = Mode.OTHER;
+            }
+        }
 
         if (!mode.intakeFollows) {
             scheduledIntake = false;
@@ -88,6 +108,7 @@ public class ShooterCommand extends Command {
                 scheduledIntake = true;
                 m_intakeScheduler.schedule(0.5, 3.0);
             }
+            onSpeedReached();
         }
         //System.out.println("Shooter speed: "+currentSpeed);
         m_shooterSubsystem.setSpeed(currentSpeed);

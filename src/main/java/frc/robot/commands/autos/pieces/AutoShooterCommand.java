@@ -1,6 +1,6 @@
 package frc.robot.commands.autos.pieces;
 
-import static frc.robot.util.SimulationDebugger.autoDbg;
+import static frc.robot.util.AutonomousDebugger.autoDbg;
 
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.commands.ShooterCommand;
@@ -60,7 +60,7 @@ public class AutoShooterCommand extends ShooterCommand {
     }
 
     private void scheduleCancel() {
-        endTime = Timer.getFPGATimestamp() + 2.0;
+        endTime = Timer.getFPGATimestamp() + 1.0;
         autoDbg("Scheduled auto-shooter end");
     }
 

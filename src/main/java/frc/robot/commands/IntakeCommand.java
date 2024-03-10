@@ -1,6 +1,6 @@
 package frc.robot.commands;
 
-import static frc.robot.util.SimulationDebugger.autoDbg;
+import static frc.robot.util.AutonomousDebugger.autoDbg;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;

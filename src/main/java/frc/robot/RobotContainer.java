@@ -6,7 +6,8 @@ package frc.robot;
 
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
-import static frc.robot.util.SimulationDebugger.autoDbg;
+import static frc.robot.util.AutonomousDebugger.markAutoStart;
+import static frc.robot.util.AutonomousDebugger.printAutoEnd;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,14 +37,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.ClimberCommand;
+import frc.robot.commands.FourBarCommand;
 import frc.robot.commands.InitFourBarCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.autos.pieces.TimedIntakeCommand;
-import frc.robot.commands.FourBarCommand;
 import frc.robot.commands.sysid.FourBarSysIdCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AutonomousInput;
@@ -158,11 +159,17 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new InitFourBarCommand(m_fourBarSubsystem)
-      .andThen(
-        Constants.AUTONOMOUS_MODE.getCommand(m_autonomousInput),
-        new InstantCommand(() -> autoDbg("Auto complete!"))
-      );
+    System.out.println("\n\n\n\nCreated Autonomous Command\n\n\n\n");
+    return new SequentialCommandGroup(
+      markAutoStart(),
+      new InitFourBarCommand(m_fourBarSubsystem),
+      Constants.AUTONOMOUS_MODE.getCommand(m_autonomousInput),
+      printAutoEnd()
+    );
+  }
+
+  public void stopAllAfterAuto() {
+    m_autonomousInput.stopAll();
   }
 
   private static double deadband(double value, double deadband) {

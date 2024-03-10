@@ -1,6 +1,6 @@
 package frc.robot.commands.named;
 
-import static frc.robot.util.SimulationDebugger.autoDbg;
+import static frc.robot.util.AutonomousDebugger.autoDbg;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;

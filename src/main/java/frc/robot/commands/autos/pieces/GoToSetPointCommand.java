@@ -1,6 +1,6 @@
 package frc.robot.commands.autos.pieces;
 
-import static frc.robot.util.SimulationDebugger.autoDbg;
+import static frc.robot.util.AutonomousDebugger.autoDbg;
 
 import com.ctre.phoenix6.Utils;
 
