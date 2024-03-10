@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static frc.robot.util.SimulationDebugger.autoDbg;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -14,6 +16,7 @@ public class IntakeCommand extends Command {
     private boolean m_previous;
 
     private double reverseEndTime = -1000;
+    private boolean endAfterReverse = false;
 
     public IntakeCommand(
         IntakeSubsystem intakeSubsystem,
@@ -27,8 +30,13 @@ public class IntakeCommand extends Command {
 
         addRequirements(m_intakeSubsystem);
     }
-
     
+    public static IntakeCommand onlyReverseSequence(IntakeSubsystem intakeSubsystem) {
+        IntakeCommand cmd = new IntakeCommand(intakeSubsystem, () -> false, () -> 0.0);
+        cmd.reverseEndTime = Double.NaN;
+        cmd.endAfterReverse = true;
+        return cmd;
+    }
 
     @Override
     public void execute() {
@@ -52,12 +60,17 @@ public class IntakeCommand extends Command {
         if (!run) {
             if (Double.isNaN(reverseEndTime)) {
                 reverseEndTime = Timer.getFPGATimestamp() + 0.25;
+                if (endAfterReverse) autoDbg("Started intake reversal");
             } else if (Timer.getFPGATimestamp() < reverseEndTime) {
                 m_intakeSubsystem.reverse(1.0);
             } else if (Timer.getFPGATimestamp() < reverseEndTime + 0.15) {
                 m_intakeSubsystem.reverse(0.0);
             } else {
                 m_intakeSubsystem.stop();
+                if (endAfterReverse) {
+                    autoDbg("Done with intake");
+                    cancel();
+                }
             }
         }
     }

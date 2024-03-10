@@ -20,9 +20,9 @@ public class ShooterCommand extends Command {
 
     private final TimedIntakeScheduler m_intakeScheduler;
 
-    private final double AMP_SPEED = 0.375;
+    private final double AMP_SPEED = 0.45;
 
-    private double currentShooterTargetSpeed = 0.7;
+    private double currentShooterTargetSpeed = 0.85;
     private double currentSpeed = 0;
     private Mode mode;
     private boolean scheduledIntake = false;
@@ -49,7 +49,7 @@ public class ShooterCommand extends Command {
     @Override
     public void execute() {
         SmartDashboard.putNumber("Shooter/Target Speed", currentShooterTargetSpeed);
-        if (m_increaseShooterSpeedSupplier.getAsBoolean()) {
+        /*if (m_increaseShooterSpeedSupplier.getAsBoolean()) {
             if (!speedChangePressed) {
                 currentShooterTargetSpeed += 0.05;
                 speedChangePressed = true;
@@ -61,7 +61,7 @@ public class ShooterCommand extends Command {
             }
         } else {
             speedChangePressed = false;
-        }
+        }*/
         currentShooterTargetSpeed = clamp(currentShooterTargetSpeed, 0, 1);
 
         double targetSpeed = 0;
@@ -86,7 +86,7 @@ public class ShooterCommand extends Command {
             currentSpeed = targetSpeed;
             if (mode.intakeFollows && !scheduledIntake) {
                 scheduledIntake = true;
-                m_intakeScheduler.schedule(0.5, 2.0);
+                m_intakeScheduler.schedule(0.5, 3.0);
             }
         }
         //System.out.println("Shooter speed: "+currentSpeed);

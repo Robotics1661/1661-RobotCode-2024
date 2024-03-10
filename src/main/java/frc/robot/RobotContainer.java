@@ -6,7 +6,7 @@ package frc.robot;
 
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
-import static frc.robot.util.SimulationDebugger.simDbg;
+import static frc.robot.util.SimulationDebugger.autoDbg;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class RobotContainer {
     return new InitFourBarCommand(m_fourBarSubsystem)
       .andThen(
         Constants.AUTONOMOUS_MODE.getCommand(m_autonomousInput),
-        new InstantCommand(() -> simDbg("Auto complete!"))
+        new InstantCommand(() -> autoDbg("Auto complete!"))
       );
   }
 

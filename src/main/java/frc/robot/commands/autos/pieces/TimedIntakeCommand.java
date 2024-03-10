@@ -36,7 +36,7 @@ public class TimedIntakeCommand extends Command {
         super.execute();
 
         if (Timer.getFPGATimestamp() >= (startTime + m_delaySeconds)) {
-            m_intakeSubsystem.run();
+            m_intakeSubsystem.runToShooter();
         }
     }
 

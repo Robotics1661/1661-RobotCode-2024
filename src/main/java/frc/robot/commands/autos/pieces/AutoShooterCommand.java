@@ -1,6 +1,6 @@
 package frc.robot.commands.autos.pieces;
 
-import static frc.robot.util.SimulationDebugger.simDbg;
+import static frc.robot.util.SimulationDebugger.autoDbg;
 
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.commands.ShooterCommand;
@@ -15,7 +15,7 @@ public class AutoShooterCommand extends ShooterCommand {
             shooterSubsystem,
             intakeScheduler
                 .afterCommand(callback)
-                .afterSchedule(() -> () -> simDbg("Scheduled AMP auto shot")),
+                .afterSchedule(() -> () -> autoDbg("Scheduled AMP auto shot")),
             Target.AMP
         );
         callback.set(cmd::scheduleCancel);
@@ -28,7 +28,7 @@ public class AutoShooterCommand extends ShooterCommand {
             shooterSubsystem,
             intakeScheduler
                 .afterCommand(callback)
-                .afterSchedule(() -> () -> simDbg("Scheduled SPEAKER auto shot")),
+                .afterSchedule(() -> () -> autoDbg("Scheduled SPEAKER auto shot")),
             Target.SPEAKER
         );
         callback.set(cmd::scheduleCancel);
@@ -56,12 +56,12 @@ public class AutoShooterCommand extends ShooterCommand {
     public void initialize() {
         super.initialize();
 
-        simDbg("Started auto-shooter command");
+        autoDbg("Started auto-shooter command");
     }
 
     private void scheduleCancel() {
-        endTime = Timer.getFPGATimestamp() + 1.5;
-        simDbg("Scheduled auto-shooter end");
+        endTime = Timer.getFPGATimestamp() + 2.0;
+        autoDbg("Scheduled auto-shooter end");
     }
 
     @Override
@@ -69,6 +69,12 @@ public class AutoShooterCommand extends ShooterCommand {
         if (super.isFinished()) return true;
 
         return !Double.isNaN(endTime) && Timer.getFPGATimestamp() > endTime;
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        super.end(interrupted);
+        autoDbg("Auto-shooter complete");
     }
 
     private static enum Target {

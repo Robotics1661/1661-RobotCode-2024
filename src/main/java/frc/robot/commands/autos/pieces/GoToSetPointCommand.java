@@ -1,6 +1,6 @@
 package frc.robot.commands.autos.pieces;
 
-import static frc.robot.util.SimulationDebugger.simDbg;
+import static frc.robot.util.SimulationDebugger.autoDbg;
 
 import com.ctre.phoenix6.Utils;
 
@@ -33,7 +33,7 @@ public class GoToSetPointCommand extends Command {
         m_fourBarSubsystem.setTargetPoint(m_target);
         startTime = Timer.getFPGATimestamp();
 
-        simDbg("[g2sp] Beginning traversal to "+m_target.name());
+        autoDbg("[g2sp] Beginning traversal to "+m_target.name());
     }
 
     @Override
@@ -42,7 +42,7 @@ public class GoToSetPointCommand extends Command {
             return Timer.getFPGATimestamp() >= startTime + 2.0;
         }
         if (Timer.getFPGATimestamp() < startTime + 0.5) return false;
-        return m_fourBarSubsystem.isClosedLoopErrorWithin(0.05);
+        return m_fourBarSubsystem.isClosedLoopErrorWithin(1.5);
     }
 
     @Override
@@ -51,19 +51,19 @@ public class GoToSetPointCommand extends Command {
 
         if (interrupted) {
             m_fourBarSubsystem.endOfRoutineStop();
-            simDbg("[g2sp] StaticBrake (interrupted)");
+            autoDbg("[g2sp] StaticBrake (interrupted)");
         } else {
             switch (m_endBehaviour) {
                 case Hold -> {
-                    simDbg("[g2sp] Hold "+m_target.name());
+                    autoDbg("[g2sp] Hold "+m_target.name());
                 }
                 case ActiveBrake -> {
                     m_fourBarSubsystem.activeStop();
-                    simDbg("[g2sp] ActiveBrake");
+                    autoDbg("[g2sp] ActiveBrake");
                 }
                 case StaticBrake -> {
                     m_fourBarSubsystem.endOfRoutineStop();
-                    simDbg("[g2sp] StaticBrake");
+                    autoDbg("[g2sp] StaticBrake");
                 }
             }
         }

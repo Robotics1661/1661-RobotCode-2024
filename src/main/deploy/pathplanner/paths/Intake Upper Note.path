@@ -1,0 +1,132 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.33,
+        "y": 5.52155524239874
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.8461242113706056,
+        "y": 5.901344756426168
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.018336848061597,
+        "y": 7.001760527838968
+      },
+      "prevControl": {
+        "x": 1.0153030033224957,
+        "y": 7.001760527838968
+      },
+      "nextControl": {
+        "x": 3.0213706928006987,
+        "y": 7.001760527838968
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.5180185188365636,
+        "y": 7.0
+      },
+      "prevControl": {
+        "x": 2.573413830101682,
+        "y": 6.972545949836858
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [
+    {
+      "name": "Prevent Rotate At Start",
+      "minWaypointRelativePos": 0.0,
+      "maxWaypointRelativePos": 0.2,
+      "constraints": {
+        "maxVelocity": 3.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 0.01,
+        "maxAngularAcceleration": 0.01
+      }
+    },
+    {
+      "name": "Slow Intake",
+      "minWaypointRelativePos": 0.7,
+      "maxWaypointRelativePos": 2.0,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0
+      }
+    }
+  ],
+  "eventMarkers": [
+    {
+      "name": "Four Bar Down and Intake Start",
+      "waypointRelativePos": 0.4,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "fourbar_intake"
+              }
+            },
+            {
+              "type": "named",
+              "data": {
+                "name": "start_intake"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Reverse Intake",
+      "waypointRelativePos": 2.0,
+      "command": {
+        "type": "sequential",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "momentary_reverse_intake"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 179.77961239426207,
+    "rotateFast": true
+  },
+  "reversed": false,
+  "folder": null,
+  "previewStartingState": {
+    "rotation": 180.0,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

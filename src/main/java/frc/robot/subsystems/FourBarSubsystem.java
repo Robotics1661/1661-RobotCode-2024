@@ -151,7 +151,7 @@ public class FourBarSubsystem extends SubsystemBase {
                 .withPeakForwardVoltage(MAX_VOLTAGE)
                 .withPeakReverseVoltage(-MAX_VOLTAGE);
             final Slot0Configs slot0Conf = new Slot0Configs() // normal configs
-                .withKP(0.5)
+                .withKP(0.625)
             ;
             final Slot1Configs slot1Conf = new Slot1Configs() // homing configs
                 .withKP(35.0)
@@ -508,8 +508,9 @@ public class FourBarSubsystem extends SubsystemBase {
     public static enum SetPoints {
         ORIGIN(0.0),
         INTAKE(-75.5),
-        AMP(86.17041015625),
-        SPEAKER(83.5)
+        AMP(84.5),
+        SPEAKER(83.5),
+        SPEAKER_AUTO(83.0)
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

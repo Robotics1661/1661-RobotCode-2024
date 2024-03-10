@@ -2,6 +2,8 @@ package frc.robot;
 
 import java.util.Optional;
 
+import com.ctre.phoenix6.Utils;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -19,10 +21,13 @@ public class JoyXboxWrapper {
     }
 
     public JoyXboxWrapper(int xboxPort, int joystickPort, boolean controllerMode) {
-        //m_xbox = Optional.empty();
-        m_xbox = Optional.of(new XboxController(xboxPort));
-        //m_joystick = Optional.empty();
-        m_joystick = Optional.of(new Joystick(joystickPort));
+        if (Utils.isSimulation()) {
+            m_xbox = Optional.empty();
+            m_joystick = Optional.empty();
+        } else {
+            m_xbox = Optional.of(new XboxController(xboxPort));
+            m_joystick = Optional.of(new Joystick(joystickPort));
+        }
         m_soft_disabled = controllerMode;
     }
 

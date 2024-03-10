@@ -52,6 +52,10 @@ public class IntakeSubsystem extends SubsystemBase {
         setSpeed(0.95); // was 0.85
     }
 
+    public void runToShooter() {
+        setSpeed(1.0);
+    }
+
     public void reverse(double percent) {
         double speed = clamp(percent, 0, 1) * -0.4;
         currentSpeed = speed;
