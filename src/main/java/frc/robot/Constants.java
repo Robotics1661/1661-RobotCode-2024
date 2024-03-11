@@ -42,7 +42,7 @@ public final class Constants {
         new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
     );
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.SPEAKER_SHOT_AND_INTAKE;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.INITIALIZE_4BAR;
 
     public static final boolean ENABLE_LL_VISION_ESTIMATE = false;
     public static final boolean FOUR_BAR_POSITION_HOLD_ASSIST = true;
