@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.DISABLE_CLIMBER;
 import static frc.robot.Constants.SWERVE_MAX_ANGULAR_RATE;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 import static frc.robot.util.AutonomousDebugger.markAutoStart;
@@ -67,7 +68,7 @@ public class RobotContainer {
   private final FourBarSubsystem m_fourBarSubsystem = new FourBarSubsystem();
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
-  private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
+  private final ClimberSubsystem m_climberSubsystem = DISABLE_CLIMBER ? null : new ClimberSubsystem();
 
   private final AutonomousInput m_autonomousInput = new AutonomousInput(
     m_drivetrainSubsystem,
@@ -139,11 +140,13 @@ public class RobotContainer {
       TimedIntakeCommand.makeScheduler(m_intakeSubsystem)
     ));
 
-    m_climberSubsystem.setDefaultCommand(new ClimberCommand(
-      m_climberSubsystem,
-      m_combined_controller::getClimberExtend,
-      m_combined_controller::getClimberRetract
-    ));
+    if (!DISABLE_CLIMBER) {
+      m_climberSubsystem.setDefaultCommand(new ClimberCommand(
+        m_climberSubsystem,
+        m_combined_controller::getClimberExtend,
+        m_combined_controller::getClimberRetract
+      ));
+    }
 
     if (Utils.isSimulation()) {
       m_drivetrainSubsystem.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));

@@ -42,4 +42,9 @@ public class SpoolUpShooterCommand extends ShooterCommand {
     public boolean isFinished() {
         return super.isFinished() || done;
     }
+
+    @Override
+    public void end(boolean interrupted) {
+        // Doesn't call super.end(interrupted) because we don't want the shooter to stop
+    }
 }

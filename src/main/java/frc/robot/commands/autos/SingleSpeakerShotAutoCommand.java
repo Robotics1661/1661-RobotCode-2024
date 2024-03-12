@@ -19,7 +19,15 @@ public class SingleSpeakerShotAutoCommand {
     private static final double SPOOL_SPEED = -0.85;
 
     @INamedCommand("single_speaker_shot_auto")
+    public static Command createForPathPlanner(AutonomousInput autonomousInput) {
+        return create(autonomousInput, SetPoints.INTAKE_AUTO_HALFWAY, 4);
+    }
+
     public static Command create(AutonomousInput autonomousInput) {
+        return create(autonomousInput, SetPoints.ORIGIN, 1.5);
+    }
+
+    private static Command create(AutonomousInput autonomousInput, SetPoints endPoint, double endPrecision) {
         /*
          * Sequence:
          *                          + Seed Drivetrain Gyro
@@ -33,7 +41,7 @@ public class SingleSpeakerShotAutoCommand {
          *                          |/
          *                          + Shoot into speaker
          *                          |
-         *                          + Return to ORIGIN pose
+         *                          + Return to `endPoint` pose
          */
         return new SequentialCommandGroup(
             new SeedDrivetrainGyroCommand(autonomousInput.drivetrainSubsystem()), // init gyro
@@ -52,10 +60,11 @@ public class SingleSpeakerShotAutoCommand {
                 autonomousInput.shooterSubsystem(),
                 TimedIntakeCommand.makeScheduler(autonomousInput.intakeSubsystem())
             ).withInitialSpeed(SPOOL_SPEED),
-            new GoToSetPointCommand( // go to ORIGIN pose
+            new GoToSetPointCommand( // go to `endPoint` pose
                 autonomousInput.fourBarSubsystem(),
-                SetPoints.ORIGIN,
-                EndBehaviour.StaticBrake
+                endPoint,
+                EndBehaviour.StaticBrake,
+                endPrecision
             )
         );
     }

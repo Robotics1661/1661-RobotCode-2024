@@ -2,6 +2,7 @@ package frc.robot.commands.autos.pieces;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 
+import static frc.robot.Constants.DISABLE_AUTO_PUSH_FORWARD;
 import static frc.robot.Constants.SWERVE_MAX_SPEED;
 import static frc.robot.util.AutonomousDebugger.autoDbg;
 
@@ -43,10 +44,11 @@ public class DriveForwardCommand extends Command {
     }
 
     @Override
+    @SuppressWarnings("unused")
     public void execute() {
         super.execute();
 
-        if (!Utils.isSimulation()) {
+        if (!Utils.isSimulation() && !DISABLE_AUTO_PUSH_FORWARD) {
             m_drivetrainSubsystem.setControl(m_drive
                 .withVelocityX(0.15 * SWERVE_MAX_SPEED)
                 .withVelocityY(0.0)

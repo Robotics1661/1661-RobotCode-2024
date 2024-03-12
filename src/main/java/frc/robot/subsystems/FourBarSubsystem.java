@@ -508,6 +508,7 @@ public class FourBarSubsystem extends SubsystemBase {
     public static enum SetPoints {
         ORIGIN(0.0),
         INTAKE(-75.5),
+        INTAKE_AUTO_HALFWAY(-35.5),
         AMP(84.5),
         SPEAKER(83.5),
         SPEAKER_AUTO(83.0)

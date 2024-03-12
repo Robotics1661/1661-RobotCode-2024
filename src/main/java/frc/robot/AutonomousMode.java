@@ -19,7 +19,8 @@ public enum AutonomousMode {
     // does nothing because this should be chained after an InitFourBarCommand
     INITIALIZE_4BAR((ai) -> new InstantCommand(), "Initialize Four Bar"),
     SINGLE_SPEAKER_SHOT(SingleSpeakerShotAutoCommand::create, "Single speaker shot"),
-    SPEAKER_SHOT_AND_INTAKE("Speaker Shot + Intake Upper", "Single speaker shot + intake upper note")
+    SPEAKER_SHOT_AND_INTAKE_UPPER("Speaker Shot + Intake Upper", "Single speaker shot + intake upper note"),
+    SPEAKER_SHOT_AND_INTAKE_MIDDLE("Speaker Shot + Intake Middle", "Single speaker shot + intake middle note"),
     ;
     private final CommandBuilder builder;
     public final String description;

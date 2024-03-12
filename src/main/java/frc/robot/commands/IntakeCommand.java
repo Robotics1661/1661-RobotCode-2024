@@ -15,6 +15,8 @@ public class IntakeCommand extends Command {
     private final DoubleSupplier m_reverseSupplier;
     private boolean m_previous;
 
+    private boolean m_done;
+
     private double reverseEndTime = -1000;
     private boolean endAfterReverse = false;
 
@@ -68,14 +70,18 @@ public class IntakeCommand extends Command {
             } else {
                 m_intakeSubsystem.stop();
                 if (endAfterReverse) {
-                    autoDbg("Done with intake");
+                    autoDbg("Done with intake reversal");
                     cancel();
+                    m_done = true;
                 }
             }
         }
     }
 
-
+    @Override
+    public boolean isFinished() {
+        return super.isFinished() || m_done;
+    }
 
     @Override
     public void end(boolean interrupted) {
