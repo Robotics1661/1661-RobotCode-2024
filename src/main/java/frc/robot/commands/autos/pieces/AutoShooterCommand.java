@@ -50,6 +50,7 @@ public class AutoShooterCommand extends ShooterCommand {
             //() -> false,
             intakeScheduler
         );
+        intakeDuration = 0.75;
     }
 
     @Override

@@ -26,6 +26,7 @@ public class ShooterCommand extends Command {
     private double currentSpeed = 0;
     private Mode mode;
     private boolean scheduledIntake = false;
+    protected double intakeDuration = 3.0;
     //private boolean speedChangePressed = false;
 
     public ShooterCommand(
@@ -99,14 +100,14 @@ public class ShooterCommand extends Command {
         }
 
         currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.05);
-        if (Math.abs(targetSpeed) < 0.01) {
+        if (Math.abs(targetSpeed) < 0.03) {
             targetSpeed = 0;
         }
-        if (Math.abs(currentSpeed - targetSpeed) < 0.01) {
+        if (Math.abs(currentSpeed - targetSpeed) < 0.03) {
             currentSpeed = targetSpeed;
             if (mode.intakeFollows && !scheduledIntake) {
                 scheduledIntake = true;
-                m_intakeScheduler.schedule(0.5, 3.0);
+                m_intakeScheduler.schedule(0.05, intakeDuration);
             }
             onSpeedReached();
         }

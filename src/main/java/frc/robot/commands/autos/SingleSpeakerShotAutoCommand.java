@@ -20,7 +20,7 @@ public class SingleSpeakerShotAutoCommand {
 
     @INamedCommand("single_speaker_shot_auto")
     public static Command createForPathPlanner(AutonomousInput autonomousInput) {
-        return create(autonomousInput, SetPoints.INTAKE_AUTO_HALFWAY, 4);
+        return create(autonomousInput, SetPoints.INTAKE_AUTO_HALFWAY, 24);
     }
 
     public static Command create(AutonomousInput autonomousInput) {

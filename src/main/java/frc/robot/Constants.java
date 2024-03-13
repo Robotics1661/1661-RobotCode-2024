@@ -51,7 +51,7 @@ public final class Constants {
     public static final boolean FOUR_BAR_POSITION_HOLD_ASSIST = true;
 
     // WARN: make sure to set to false before any matches
-    public static final boolean DISABLE_SWERVE = false;
-    public static final boolean DISABLE_CLIMBER = true;
+    public static final boolean DISABLE_SWERVE = true;
+    public static final boolean DISABLE_CLIMBER = false;
     public static final boolean DISABLE_AUTO_PUSH_FORWARD = true;
 }
