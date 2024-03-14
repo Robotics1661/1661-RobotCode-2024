@@ -11,6 +11,7 @@ import static frc.robot.util.TimeUtil.busySleep;
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
@@ -19,6 +20,7 @@ import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -59,6 +61,8 @@ public class FourBarSubsystem extends SubsystemBase {
     private final StaticBrake m_brake = new StaticBrake();
     private final PositionVoltage m_rightPositionVoltageRequest;
     private final PositionVoltage m_leftPositionVoltageRequest;
+    private final MotionMagicVoltage m_rightMotionMagicVoltageRequest;
+    private final MotionMagicVoltage m_leftMotionMagicVoltageRequest;
 
     // WARN: Follower control mode breaks position value - DO NOT USE
 
@@ -161,6 +165,10 @@ public class FourBarSubsystem extends SubsystemBase {
             ;
             final MotorOutputConfigs outputConfig = new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Brake);
+            final MotionMagicConfigs motionMagicConf = new MotionMagicConfigs()
+                .withMotionMagicAcceleration(100)
+                .withMotionMagicCruiseVelocity(300.0)
+            ;
 
 
             TalonFXConfigurator configRight = m_motorRight.getConfigurator();
@@ -170,6 +178,7 @@ public class FourBarSubsystem extends SubsystemBase {
             configRight.apply(slot1Conf);
             configRight.apply(initLimitSwitchConf);
             configRight.apply(slot2Conf);
+            configRight.apply(motionMagicConf);
 
             TalonFXConfigurator configLeft = m_motorLeft.getConfigurator();
             configLeft.apply(voltageConf);
@@ -178,6 +187,7 @@ public class FourBarSubsystem extends SubsystemBase {
             configLeft.apply(slot1Conf);
             configLeft.apply(initLimitSwitchConf);
             configLeft.apply(slot2Conf);
+            configLeft.apply(motionMagicConf);
         }
 
         // configure encoders
@@ -206,6 +216,8 @@ public class FourBarSubsystem extends SubsystemBase {
         // SEE NOTE ABOVE m_follower = new Follower(m_motorRight.getDeviceID(), true);
         m_rightPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.rightPosition(), 0.0, false, 0.0, 0, true, false, false);
         m_leftPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.leftPosition(), 0.0, false, 0.0, 0, true, false, false);
+        m_rightMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.rightPosition(), false, 0.0, 0, true, false, false);
+        m_leftMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.leftPosition(), false, 0.0, 0, true, false, false);
         
         //m_motorLeft.setControl(m_follower);
         m_motorLeft.setControl(m_leftDutyCycleRequest);
@@ -253,19 +265,19 @@ public class FourBarSubsystem extends SubsystemBase {
 
     public void setTargetPoint(SetPoints target) {
         lastSetPoint = target;
-        setTargetPointInternal(target.leftPosition(), target.rightPosition());
+        setTargetPointInternal(target.leftPosition(), target.rightPosition(), true);
         SmartDashboard.putString("FourBar/Mode", "SetPoint: "+target.name());
         activeBrakeRightTarget = Double.NaN;
     }
 
     public void moveTargetForward() {
-        setTargetPointInternal(lastRightTarget + 4);
+        setTargetPointInternal(lastRightTarget + 4, false);
         SmartDashboard.putString("FourBar/Mode", "Moving to: "+lastRightTarget);
         activeBrakeRightTarget = Double.NaN;
     }
 
     public void moveTargetBackward() {
-        setTargetPointInternal(lastRightTarget - 4);
+        setTargetPointInternal(lastRightTarget - 4, false);
         SmartDashboard.putString("FourBar/Mode", "Moving to: "+lastRightTarget);
         activeBrakeRightTarget = Double.NaN;
     }
@@ -297,9 +309,18 @@ public class FourBarSubsystem extends SubsystemBase {
         System.out.println("WAKEY WAKEY");
     }
 
+    private double lastWorstError = 0.0;
+
     public boolean isClosedLoopErrorWithin(double buffer) {
-        return Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble()) < buffer
-            && Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble()) < buffer;
+        double rightError = Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble());
+        double leftError = Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble());
+        double worstError = Math.max(rightError, leftError);
+        if (worstError < buffer && worstError < lastWorstError) {
+            lastWorstError = worstError;
+            return true;
+        }
+        lastWorstError = worstError;
+        return false;
     }
 
     /**
@@ -360,7 +381,7 @@ public class FourBarSubsystem extends SubsystemBase {
         if (Double.isNaN(activeBrakeRightTarget)) {
             activeBrakeRightTarget = m_motorRight.getPosition().getValueAsDouble();
         }
-        setTargetPointInternal(activeBrakeRightTarget);
+        setTargetPointInternal(activeBrakeRightTarget, false);
     }
 
     /**
@@ -368,8 +389,8 @@ public class FourBarSubsystem extends SubsystemBase {
      * @deprecated for internal - and CAREFUL - use only. Using setTargetPoint is safer because it only allows tested-to-be-safe points
      */
     @Deprecated
-    private void setTargetPointInternal(double rightTarget) {
-        setTargetPointInternal(-rightTarget, rightTarget);
+    private void setTargetPointInternal(double rightTarget, boolean useMotionMagic) {
+        setTargetPointInternal(-rightTarget, rightTarget, useMotionMagic);
     }
 
     /**
@@ -377,7 +398,7 @@ public class FourBarSubsystem extends SubsystemBase {
      * @deprecated for internal - and CAREFUL - use only. Using setTargetPoint is safer because it only allows tested-to-be-safe points
      */
     @Deprecated
-    private void setTargetPointInternal(double leftTarget, double rightTarget) {
+    private void setTargetPointInternal(double leftTarget, double rightTarget, boolean useMotionMagic) {
         if (!initialized) {
             System.err.println("[4bar] Target set without initialization, skipping");
             endOfRoutineStop();
@@ -392,12 +413,21 @@ public class FourBarSubsystem extends SubsystemBase {
             && (lastSetPoint != SetPoints.AMP && lastSetPoint != SetPoints.SPEAKER && lastSetPoint != SetPoints.SPEAKER_AUTO);
         SmartDashboard.putBoolean("FourBar/Slow Mode", slowMode);
 
+        SmartDashboard.putBoolean("FourBar/MotionMagic", useMotionMagic);
+
         lastRightTarget = rightTarget;
 
-        m_motorLeft.setControl(m_leftPositionVoltageRequest
-            .withPosition(leftTarget).withSlot(slowMode ? 2 : 0));
-        m_motorRight.setControl(m_rightPositionVoltageRequest
-            .withPosition(rightTarget).withSlot(slowMode ? 2 : 0));
+        if (useMotionMagic) {
+            m_motorLeft.setControl(m_leftMotionMagicVoltageRequest
+                .withPosition(leftTarget).withSlot(0));
+            m_motorRight.setControl(m_rightMotionMagicVoltageRequest
+                .withPosition(rightTarget).withSlot(0));
+        } else {
+            m_motorLeft.setControl(m_leftPositionVoltageRequest
+                .withPosition(leftTarget).withSlot(slowMode ? 2 : 0));
+            m_motorRight.setControl(m_rightPositionVoltageRequest
+                .withPosition(rightTarget).withSlot(slowMode ? 2 : 0));
+        }
     }
 
     /** Get angular velocity of MOTOR */
@@ -508,17 +538,18 @@ public class FourBarSubsystem extends SubsystemBase {
         double leftMotorError = m_motorLeft.getClosedLoopError().getValueAsDouble();
         double worstError = Math.max(Math.abs(rightMotorError), Math.abs(leftMotorError));
         SmartDashboard.putNumber("FourBar/Closed Loop Error (Worst)", worstError);
+        SmartDashboard.putNumber("FourBar/MM Running", m_motorRight.getMotionMagicIsRunning().getValueAsDouble());
 
         SmartDashboard.putBoolean("FourBar/Initialized", initialized);
     }
 
     public static enum SetPoints {
         ORIGIN(0.0),
-        INTAKE(-75.5),
+        INTAKE(-69.25),
         INTAKE_AUTO_HALFWAY(-60.5),
         AMP(84.5),
-        SPEAKER(84.0),
-        SPEAKER_AUTO(84.0)
+        SPEAKER(85.5),
+        SPEAKER_AUTO(85.25)
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

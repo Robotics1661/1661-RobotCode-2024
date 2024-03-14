@@ -10,6 +10,7 @@ import frc.robot.commands.autos.pieces.GoToSetPointCommand;
 import frc.robot.commands.autos.pieces.GoToSetPointCommand.EndBehaviour;
 import frc.robot.commands.autos.pieces.SeedDrivetrainGyroCommand;
 import frc.robot.commands.autos.pieces.SpoolUpShooterCommand;
+import frc.robot.commands.autos.pieces.TimedDelayCommand;
 import frc.robot.commands.autos.pieces.TimedIntakeCommand;
 import frc.robot.subsystems.AutonomousInput;
 import frc.robot.subsystems.FourBarSubsystem.SetPoints;
@@ -56,6 +57,7 @@ public class SingleSpeakerShotAutoCommand {
                 ),
                 new SpoolUpShooterCommand(autonomousInput.shooterSubsystem(), SPOOL_SPEED)
             ),
+            new TimedDelayCommand(0.5),
             AutoShooterCommand.speaker( // shoot into SPEAKER
                 autonomousInput.shooterSubsystem(),
                 TimedIntakeCommand.makeScheduler(autonomousInput.intakeSubsystem())

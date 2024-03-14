@@ -22,7 +22,7 @@ public class GoToSetPointCommand extends Command {
         SetPoints target,
         EndBehaviour endBehaviour
     ) {
-        this(fourBarSubsystem, target, endBehaviour, 1.5);
+        this(fourBarSubsystem, target, endBehaviour, 0.75);
     }
 
     public GoToSetPointCommand(

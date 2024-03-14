@@ -171,7 +171,7 @@ public class RobotContainer {
     );
   }
 
-  public void stopAllAfterAuto() {
+  public void stopAllOnDisable() {
     m_autonomousInput.stopAll();
   }
 

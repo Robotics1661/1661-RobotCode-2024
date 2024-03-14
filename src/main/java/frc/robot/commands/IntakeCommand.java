@@ -61,10 +61,10 @@ public class IntakeCommand extends Command {
 
         if (!run) {
             if (Double.isNaN(reverseEndTime)) {
-                reverseEndTime = Timer.getFPGATimestamp() + 0.25;
+                reverseEndTime = Timer.getFPGATimestamp() + 0.175;
                 if (endAfterReverse) autoDbg("Started intake reversal");
             } else if (Timer.getFPGATimestamp() < reverseEndTime) {
-                m_intakeSubsystem.reverse(1.0);
+                m_intakeSubsystem.reverse(0.5);
             } else if (Timer.getFPGATimestamp() < reverseEndTime + 0.15) {
                 m_intakeSubsystem.reverse(0.0);
             } else {
