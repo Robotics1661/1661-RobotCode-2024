@@ -57,7 +57,7 @@ public class SingleSpeakerShotAutoCommand {
                 ),
                 new SpoolUpShooterCommand(autonomousInput.shooterSubsystem(), SPOOL_SPEED)
             ),
-            new TimedDelayCommand(0.5),
+            new TimedDelayCommand(0.5), // give four bar time to stop swaying
             AutoShooterCommand.speaker( // shoot into SPEAKER
                 autonomousInput.shooterSubsystem(),
                 TimedIntakeCommand.makeScheduler(autonomousInput.intakeSubsystem())

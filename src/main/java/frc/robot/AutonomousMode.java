@@ -5,6 +5,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.autos.SingleSpeakerShotAutoCommand;
+import frc.robot.commands.named.MiscPieces;
 import frc.robot.subsystems.AutonomousInput;
 
 /* Just some convenient abstraction for autonomous modes */
@@ -21,6 +22,9 @@ public enum AutonomousMode {
     SINGLE_SPEAKER_SHOT(SingleSpeakerShotAutoCommand::create, "Single speaker shot"),
     SPEAKER_SHOT_AND_INTAKE_UPPER("Speaker Shot + Intake Upper", "Single speaker shot + intake upper note"),
     SPEAKER_SHOT_AND_INTAKE_MIDDLE("Speaker Shot + Intake Middle", "Single speaker shot + intake middle note"),
+    SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_RACE_FORWARD("Speaker Shot + Intake Middle + Race Forward", "Single speaker shot + intake middle note + race back to shooting position"),
+    SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_SHOOT_FAR("Speaker Shot + Intake Middle + Shoot Far", "Single speaker shot + intake middle note + far speaker shot"),
+    FAR_SHOT_TEST(MiscPieces::shootSpeakerFar, "Shoot speaker far test")
     ;
     private final CommandBuilder builder;
     public final String description;

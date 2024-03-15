@@ -70,8 +70,10 @@ public class FourBarSubsystem extends SubsystemBase {
 
     private double activeBrakeRightTarget = Double.NaN;
     private boolean wasFollowingSetPoint = false;
+    @SuppressWarnings("unused")
     private SetPoints lastSetPoint = SetPoints.ORIGIN;
     private double lastRightTarget = SetPoints.ORIGIN.rightPosition();
+    private boolean goFaster = false;
 
     private static final double MAX_VOLTAGE = 4.0;
     private static final double GEAR_RATIO = 95; // TO-DO exact
@@ -79,7 +81,7 @@ public class FourBarSubsystem extends SubsystemBase {
     private final double RIGHT_HOMING_TARGET = -0.098876953125;
     private final double LEFT_HOMING_TARGET = rightEncoderPositionToLeftEncoderPosition(RIGHT_HOMING_TARGET);
 
-    private final double FORWARD_RIGHT_MOTOR_LIMIT = 88.17041015625;
+    private final double FORWARD_RIGHT_MOTOR_LIMIT = 88.17041015625; // TODO: apply SP_OFFSET
     private final double BACKWARD_RIGHT_MOTOR_LIMIT = -77.0;
 
     // assigning -BR to FR and -FR to BL is intentional, it needs to be swapped due to negative
@@ -160,8 +162,8 @@ public class FourBarSubsystem extends SubsystemBase {
             final Slot1Configs slot1Conf = new Slot1Configs() // homing configs
                 .withKP(55.0) // was 35.0
             ;
-            final Slot2Configs slot2Conf = new Slot2Configs() // normal (slow) configs
-                .withKP(0.1)
+            final Slot2Configs slot2Conf = new Slot2Configs() // normal (faster) configs
+                .withKP(20.0)
             ;
             final MotorOutputConfigs outputConfig = new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Brake);
@@ -256,14 +258,21 @@ public class FourBarSubsystem extends SubsystemBase {
     }
 
     public void activeStop() {
+        goFaster = false;
         setSpeed(0);
     }
 
     public void endOfRoutineStop() {
+        goFaster = false;
         setSpeed(0, true);
     }
 
     public void setTargetPoint(SetPoints target) {
+        setTargetPoint(target, false);
+    }
+
+    public void setTargetPoint(SetPoints target, boolean faster) {
+        goFaster = faster;
         lastSetPoint = target;
         setTargetPointInternal(target.leftPosition(), target.rightPosition(), true);
         SmartDashboard.putString("FourBar/Mode", "SetPoint: "+target.name());
@@ -311,10 +320,28 @@ public class FourBarSubsystem extends SubsystemBase {
 
     private double lastWorstError = 0.0;
 
+    private double getManualErrorRight() {
+        return Math.abs(m_motorRight.getPosition().getValueAsDouble() - lastRightTarget);
+    }
+
+    private double getManualErrorLeft() {
+        return Math.abs(m_motorLeft.getPosition().getValueAsDouble() - (-lastRightTarget));
+    }
+
     public boolean isClosedLoopErrorWithin(double buffer) {
         double rightError = Math.abs(m_motorRight.getClosedLoopError().getValueAsDouble());
         double leftError = Math.abs(m_motorLeft.getClosedLoopError().getValueAsDouble());
-        double worstError = Math.max(rightError, leftError);
+        double rightErrorM = getManualErrorRight();
+        double leftErrorM = getManualErrorLeft();
+        double worstError;
+        if (initialized) {
+            worstError = Math.max(
+                Math.max(rightError, leftError),
+                Math.max(rightErrorM, leftErrorM)
+            );
+        } else {
+            worstError = Math.max(rightError, leftError);
+        }
         if (worstError < buffer && worstError < lastWorstError) {
             lastWorstError = worstError;
             return true;
@@ -409,9 +436,10 @@ public class FourBarSubsystem extends SubsystemBase {
             m_motorLeft.setControl(m_brake);
             m_motorRight.setControl(m_brake);
         }
-        boolean slowMode = m_motorRight.getPosition().getValueAsDouble() > 70
-            && (lastSetPoint != SetPoints.AMP && lastSetPoint != SetPoints.SPEAKER && lastSetPoint != SetPoints.SPEAKER_AUTO);
-        SmartDashboard.putBoolean("FourBar/Slow Mode", slowMode);
+        //boolean slowMode = m_motorRight.getPosition().getValueAsDouble() > 70
+        //    && (lastSetPoint != SetPoints.AMP && lastSetPoint != SetPoints.SPEAKER && lastSetPoint != SetPoints.SPEAKER_AUTO && lastSetPoint != SetPoints.FAR_SPEAKER_AUTO);
+        //SmartDashboard.putBoolean("FourBar/Slow Mode", slowMode);
+        SmartDashboard.putBoolean("FourBar/Faster", goFaster);
 
         SmartDashboard.putBoolean("FourBar/MotionMagic", useMotionMagic);
 
@@ -419,14 +447,14 @@ public class FourBarSubsystem extends SubsystemBase {
 
         if (useMotionMagic) {
             m_motorLeft.setControl(m_leftMotionMagicVoltageRequest
-                .withPosition(leftTarget).withSlot(0));
+                .withPosition(leftTarget).withSlot(goFaster ? 2 : 0));
             m_motorRight.setControl(m_rightMotionMagicVoltageRequest
-                .withPosition(rightTarget).withSlot(0));
+                .withPosition(rightTarget).withSlot(goFaster ? 2 : 0));
         } else {
             m_motorLeft.setControl(m_leftPositionVoltageRequest
-                .withPosition(leftTarget).withSlot(slowMode ? 2 : 0));
+                .withPosition(leftTarget).withSlot(goFaster ? 2 : 0));
             m_motorRight.setControl(m_rightPositionVoltageRequest
-                .withPosition(rightTarget).withSlot(slowMode ? 2 : 0));
+                .withPosition(rightTarget).withSlot(goFaster ? 2 : 0));
         }
     }
 
@@ -493,8 +521,9 @@ public class FourBarSubsystem extends SubsystemBase {
     private static double rightEncoderPositionToLeftEncoderPosition(double rightPosition) {
         // apply negated transform (left varies negatively proportional to right)
 
-        final double leftCal = -0.448242;//-0.154052734375;
-        final double rightCal = -0.064697;//-0.34228515625;
+        boolean n = false;
+        final double leftCal = n ? -0.340088 : -0.448242;
+        final double rightCal = n ? -0.189697 : -0.064697;
 
         double normalizedPosition = rightPosition - rightCal;
         double offset = -normalizedPosition;
@@ -543,13 +572,16 @@ public class FourBarSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("FourBar/Initialized", initialized);
     }
 
+    private static double SP_OFFSET = -2.1;
+
     public static enum SetPoints {
         ORIGIN(0.0),
-        INTAKE(-69.25),
-        INTAKE_AUTO_HALFWAY(-60.5),
-        AMP(84.5),
-        SPEAKER(85.5),
-        SPEAKER_AUTO(85.25)
+        INTAKE(-69.25 + SP_OFFSET),
+        INTAKE_AUTO_HALFWAY(-60.5 + SP_OFFSET),
+        AMP(84.5 + SP_OFFSET),
+        SPEAKER(85.5 + SP_OFFSET),
+        SPEAKER_AUTO(85.25 + SP_OFFSET),
+        FAR_SPEAKER_AUTO(79.10)
         ;
         private final double rightPosition;
         private SetPoints(double rightPosition) {

@@ -6,9 +6,12 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.autos.pieces.TimedIntakeCommand.TimedIntakeScheduler;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.util.AutoEndException;
+import frc.robot.util.AutonomousDebugger;
 import frc.robot.util.MutableObject;
 
 public class AutoShooterCommand extends ShooterCommand {
+    boolean scheduledEnd = false;
     public static AutoShooterCommand amp(ShooterSubsystem shooterSubsystem, TimedIntakeScheduler intakeScheduler) {
         MutableObject<Runnable> callback = new MutableObject<Runnable>(() -> {});
         AutoShooterCommand cmd = new AutoShooterCommand(
@@ -50,7 +53,7 @@ public class AutoShooterCommand extends ShooterCommand {
             //() -> false,
             intakeScheduler
         );
-        intakeDuration = 0.75;
+        intakeDuration = 0.8;
     }
 
     @Override
@@ -63,6 +66,7 @@ public class AutoShooterCommand extends ShooterCommand {
     private void scheduleCancel() {
         endTime = Timer.getFPGATimestamp() + 1.0;
         autoDbg("Scheduled auto-shooter end");
+        scheduledEnd = true;
     }
 
     @Override
@@ -76,6 +80,11 @@ public class AutoShooterCommand extends ShooterCommand {
     public void end(boolean interrupted) {
         super.end(interrupted);
         autoDbg("Auto-shooter complete");
+        if (!scheduledEnd) {
+            autoDbg("Auto shooter end() called without scheduling...");
+            AutonomousDebugger.printAutoEnd();
+            throw new AutoEndException();
+        }
     }
 
     private static enum Target {

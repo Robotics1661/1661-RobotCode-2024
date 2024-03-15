@@ -21,6 +21,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Units;
@@ -240,6 +241,22 @@ public class DrivetrainSubsystem extends SwerveDrivetrain implements Subsystem {
                 VecBuilder.fill(xyStds, xyStds, degreesToRadians(degStds)));
             m_odometry.addVisionMeasurement(visionBotPose.pose2d(),
                 visionBotPose.timestampSeconds());
+        }
+    }
+
+    /**
+     * Takes the current orientation of the robot and makes it X backward for
+     * field-relative
+     * maneuvers.
+     */
+    public void seedFieldRelative180() {
+        try {
+            m_stateLock.writeLock().lock();
+
+            m_fieldRelativeOffset = getState().Pose.getRotation()
+                .plus(Rotation2d.fromDegrees(180));
+        } finally {
+            m_stateLock.writeLock().unlock();
         }
     }
 }

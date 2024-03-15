@@ -15,12 +15,14 @@ public class FourBarCommand extends Command {
     private final BooleanSupplier m_goIntakeSupplier;
     private final BooleanSupplier m_goAmpSupplier;
     private final BooleanSupplier m_goSpeakerSupplier;
+    private final BooleanSupplier m_goFarSpeakerSupplier;
     private boolean stopped = false;
 
     public FourBarCommand(
         FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier,
         BooleanSupplier goOriginSupplier, BooleanSupplier goIntakeSupplier,
-        BooleanSupplier goAmpSupplier, BooleanSupplier goSpeakerSupplier
+        BooleanSupplier goAmpSupplier, BooleanSupplier goSpeakerSupplier,
+        BooleanSupplier goFarSpeakerSupplier
         ) {
         this.m_fourBarSubsystem = fourBarSubsystem;
         this.m_speedSupplier = speedSupplier;
@@ -28,6 +30,7 @@ public class FourBarCommand extends Command {
         this.m_goIntakeSupplier = goIntakeSupplier;
         this.m_goAmpSupplier = goAmpSupplier;
         this.m_goSpeakerSupplier = goSpeakerSupplier;
+        this.m_goFarSpeakerSupplier = goFarSpeakerSupplier;
 
         addRequirements(m_fourBarSubsystem);
     }
@@ -52,6 +55,8 @@ public class FourBarCommand extends Command {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.AMP);
             } else if (m_goSpeakerSupplier.getAsBoolean()) {
                 m_fourBarSubsystem.setTargetPoint(SetPoints.SPEAKER);
+            } else if (m_goFarSpeakerSupplier.getAsBoolean()) {
+                m_fourBarSubsystem.setTargetPoint(SetPoints.FAR_SPEAKER_AUTO);
             } else { // safety stop - require button to be held in for motion
                 m_fourBarSubsystem.activeStop();
             }

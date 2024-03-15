@@ -12,7 +12,8 @@ public class FourBarPieces {
         return new GoToSetPointCommand(
             autonomousInput.fourBarSubsystem(),
             SetPoints.INTAKE,
-            EndBehaviour.Hold
+            EndBehaviour.Hold,
+            true
         );
     }
 
@@ -21,7 +22,8 @@ public class FourBarPieces {
         return new GoToSetPointCommand(
             autonomousInput.fourBarSubsystem(),
             SetPoints.ORIGIN,
-            EndBehaviour.StaticBrake
+            EndBehaviour.StaticBrake,
+            true
         );
     }
 }

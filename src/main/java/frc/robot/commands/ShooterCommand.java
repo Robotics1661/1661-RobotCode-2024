@@ -99,7 +99,7 @@ public class ShooterCommand extends Command {
             scheduledIntake = false;
         }
 
-        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.05);
+        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.08);
         if (Math.abs(targetSpeed) < 0.03) {
             targetSpeed = 0;
         }

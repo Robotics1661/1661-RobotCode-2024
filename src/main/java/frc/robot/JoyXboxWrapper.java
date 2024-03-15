@@ -69,6 +69,10 @@ public class JoyXboxWrapper {
         return getFlightButton(9);
     }
 
+    public boolean getZeroButton180() {
+        return getFlightButton(10);
+    }
+
     public boolean getSysIdSafety() {
         return getFlightButton(11);
     }
@@ -107,6 +111,10 @@ public class JoyXboxWrapper {
     public boolean getFourBarSpeaker() {
         if (isSoftDisabled()) return false;
         return m_xbox.map(XboxController::getAButton).orElse(false);
+    }
+
+    public boolean getFourBarFarSpeaker() {
+        return getFlightButton(12);
     }
 
     public boolean getClimberExtend() {

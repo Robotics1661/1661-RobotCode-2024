@@ -110,6 +110,7 @@ public class RobotContainer {
     ));
     new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));
     new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
+    new Trigger(m_combined_controller::getZeroButton180).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative180()));
 
     //*
     m_fourBarSubsystem.setDefaultCommand(new FourBarCommand(
@@ -118,7 +119,8 @@ public class RobotContainer {
       m_combined_controller::getFourBarOrigin,
       m_combined_controller::getFourBarIntake,
       m_combined_controller::getFourBarAmp,
-      m_combined_controller::getFourBarSpeaker
+      m_combined_controller::getFourBarSpeaker,
+      m_combined_controller::getFourBarFarSpeaker
     )); // */
 
     new Trigger(m_combined_controller::getFourBarInitialize)

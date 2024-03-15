@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.Utils;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -43,9 +42,7 @@ public final class Constants {
         new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
     );
 
-    public static final AutonomousMode AUTONOMOUS_MODE = Utils.isSimulation()
-        ? AutonomousMode.SPEAKER_SHOT_AND_INTAKE_MIDDLE
-        : AutonomousMode.SPEAKER_SHOT_AND_INTAKE_MIDDLE;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_RACE_FORWARD;
 
     public static final boolean ENABLE_LL_VISION_ESTIMATE = false;
     public static final boolean FOUR_BAR_POSITION_HOLD_ASSIST = true;
