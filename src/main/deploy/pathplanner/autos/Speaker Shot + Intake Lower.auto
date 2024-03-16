@@ -2,30 +2,30 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 2.0,
-      "y": 7.0
+      "x": 0.7134190306340287,
+      "y": 4.430877663653311
     },
-    "rotation": 0
+    "rotation": 118.92642583525355
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Path 1"
+            "name": "single_speaker_shot_auto"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Path 2"
+            "pathName": "Intake Lower Note"
           }
         }
       ]
     }
   },
-  "folder": null,
+  "folder": "Speaker Shots",
   "choreoAuto": false
 }

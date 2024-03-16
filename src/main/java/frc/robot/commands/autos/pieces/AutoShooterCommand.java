@@ -53,7 +53,7 @@ public class AutoShooterCommand extends ShooterCommand {
             //() -> false,
             intakeScheduler
         );
-        intakeDuration = 0.8;
+        intakeDuration = 1.0;
     }
 
     @Override

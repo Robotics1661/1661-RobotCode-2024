@@ -20,7 +20,7 @@ public class ShooterCommand extends Command {
 
     private final TimedIntakeScheduler m_intakeScheduler;
 
-    private final double AMP_SPEED = 0.45;
+    private final double AMP_SPEED = 0.54;//0.52;
 
     private double currentShooterTargetSpeed = 0.85;
     private double currentSpeed = 0;
@@ -99,7 +99,7 @@ public class ShooterCommand extends Command {
             scheduledIntake = false;
         }
 
-        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.08);
+        currentSpeed = MathUtil.lerp(currentSpeed, targetSpeed, 0.1);
         if (Math.abs(targetSpeed) < 0.03) {
             targetSpeed = 0;
         }

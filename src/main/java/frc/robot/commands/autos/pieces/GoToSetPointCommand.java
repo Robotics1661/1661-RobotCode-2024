@@ -56,6 +56,8 @@ public class GoToSetPointCommand extends Command {
         this.m_endBehaviour = endBehaviour;
         this.m_precision = precision;
         this.m_faster = faster;
+
+        addRequirements(fourBarSubsystem);
     }
 
     @Override

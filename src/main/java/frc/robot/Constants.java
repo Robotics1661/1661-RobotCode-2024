@@ -42,13 +42,13 @@ public final class Constants {
         new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
     );
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_RACE_FORWARD;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_SHOOT_FAR;//.SPEAKER_SHOT_AND_INTAKE_MIDDLE_AND_RACE_FORWARD;
 
-    public static final boolean ENABLE_LL_VISION_ESTIMATE = false;
+    public static final boolean ENABLE_LL_VISION_ESTIMATE = true;
     public static final boolean FOUR_BAR_POSITION_HOLD_ASSIST = true;
 
     // WARN: make sure to set to false before any matches
     public static final boolean DISABLE_SWERVE = false;
-    public static final boolean DISABLE_CLIMBER = false;
-    public static final boolean DISABLE_AUTO_PUSH_FORWARD = true;
+    public static final boolean DISABLE_CLIMBER = true;
+    public static final boolean DISABLE_AUTO_PUSH_FORWARD = false;
 }

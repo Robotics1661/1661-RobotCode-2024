@@ -30,6 +30,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -111,6 +112,9 @@ public class RobotContainer {
     new Trigger(m_combined_controller::getBrakeButton).whileTrue(m_drivetrainSubsystem.applyRequest(() -> brake));
     new Trigger(m_combined_controller::getZeroButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative()));
     new Trigger(m_combined_controller::getZeroButton180).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.seedFieldRelative180()));
+    
+    new Trigger(m_combined_controller::getPoseFromLLButton).onTrue(m_drivetrainSubsystem.runOnce(() -> m_drivetrainSubsystem.useLimelightPose()));
+    new Trigger(m_combined_controller::getDriveToAmpButton).whileTrue(new PathPlannerAuto("Manual Amp Shot"));
 
     //*
     m_fourBarSubsystem.setDefaultCommand(new FourBarCommand(
@@ -153,7 +157,7 @@ public class RobotContainer {
     if (Utils.isSimulation()) {
       m_drivetrainSubsystem.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
-    m_drivetrainSubsystem.registerTelemetry(logger::telemeterize);
+    m_drivetrainSubsystem.registerAdditionalTelemetry(logger::telemeterize);
 
     registerNamedCommands();
   }

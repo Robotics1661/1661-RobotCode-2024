@@ -6,7 +6,6 @@ import static frc.robot.Constants.FOUR_BAR_LEFT_ID;
 import static frc.robot.Constants.FOUR_BAR_POSITION_HOLD_ASSIST;
 import static frc.robot.Constants.FOUR_BAR_RIGHT_ID;
 import static frc.robot.util.MathUtil.clamp;
-import static frc.robot.util.TimeUtil.busySleep;
 
 import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -204,6 +203,7 @@ public class FourBarSubsystem extends SubsystemBase {
             CANcoderConfigurator configLeft = m_encoderLeft.getConfigurator();
             configLeft.apply(magnetConf);
 
+            /*
             busySleep(500);
             System.out.println("[4bar] Setting CANCoder positions");
             // init can coders to absolute
@@ -211,6 +211,7 @@ public class FourBarSubsystem extends SubsystemBase {
                 .getAbsolutePosition().refresh().getValueAsDouble());
             m_encoderLeft.setPosition(m_encoderLeft
                 .getAbsolutePosition().refresh().getValueAsDouble());
+            // */
             System.out.println("[4bar] Done with CANCoder setup");
         }
 
@@ -572,15 +573,15 @@ public class FourBarSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("FourBar/Initialized", initialized);
     }
 
-    private static double SP_OFFSET = -2.1;
+    private static double SP_OFFSET = -1.2; // -1.2
 
     public static enum SetPoints {
         ORIGIN(0.0),
         INTAKE(-69.25 + SP_OFFSET),
         INTAKE_AUTO_HALFWAY(-60.5 + SP_OFFSET),
-        AMP(84.5 + SP_OFFSET),
+        AMP(82.74),//81.36),//85.0),
         SPEAKER(85.5 + SP_OFFSET),
-        SPEAKER_AUTO(85.25 + SP_OFFSET),
+        SPEAKER_AUTO(85.5 + SP_OFFSET),
         FAR_SPEAKER_AUTO(79.10)
         ;
         private final double rightPosition;

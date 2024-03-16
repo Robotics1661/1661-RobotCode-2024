@@ -57,6 +57,14 @@ public class JoyXboxWrapper {
             : m_joystick.map(j -> j.getRawButton(id)).orElse(false);
     }
 
+    public boolean getDriveToAmpButton() {
+        return getFlightButton(2);
+    }
+
+    public boolean getPoseFromLLButton() {
+        return getFlightButton(4);
+    }
+
     public boolean getZeroButton() {
         return getFlightButton(7);
     }

@@ -1,0 +1,38 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.6842044526319189,
+      "y": 4.440615856320681
+    },
+    "rotation": 119.10473162741869
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Source Side To Far Shot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "fourbar_far_shot"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Far Shots",
+  "choreoAuto": false
+}

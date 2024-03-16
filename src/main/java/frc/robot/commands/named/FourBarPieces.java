@@ -26,4 +26,24 @@ public class FourBarPieces {
             true
         );
     }
+
+    @INamedCommand("fourbar_amp")
+    public static GoToSetPointCommand goToAmp(AutonomousInput autonomousInput) {
+        return new GoToSetPointCommand(
+            autonomousInput.fourBarSubsystem(),
+            SetPoints.AMP,
+            EndBehaviour.Hold,
+            false
+        );
+    }
+
+    @INamedCommand("fourbar_far_shot")
+    public static GoToSetPointCommand goToSpeakerFarShot(AutonomousInput autonomousInput) {
+        return new GoToSetPointCommand(
+            autonomousInput.fourBarSubsystem(),
+            SetPoints.FAR_SPEAKER_AUTO,
+            EndBehaviour.Hold,
+            true
+        );
+    }
 }

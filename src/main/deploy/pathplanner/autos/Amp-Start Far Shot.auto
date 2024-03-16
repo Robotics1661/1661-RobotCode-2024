@@ -1,0 +1,38 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.6549898746298092,
+      "y": 6.680400169815762
+    },
+    "rotation": -120.96375653207348
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Amp Side To Far Shot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "fourbar_far_shot"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Far Shots",
+  "choreoAuto": false
+}

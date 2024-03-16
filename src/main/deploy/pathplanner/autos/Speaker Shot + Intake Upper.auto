@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.33,
-      "y": 5.52
+      "x": 0.6744662599645491,
+      "y": 6.680400169815762
     },
-    "rotation": 180.0
+    "rotation": -119.51149855709025
   },
   "command": {
     "type": "sequential",
@@ -26,6 +26,6 @@
       ]
     }
   },
-  "folder": null,
+  "folder": "Speaker Shots",
   "choreoAuto": false
 }

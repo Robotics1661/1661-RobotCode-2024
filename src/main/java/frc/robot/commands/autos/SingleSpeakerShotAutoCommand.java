@@ -1,8 +1,11 @@
 package frc.robot.commands.autos;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.AutonomousMode.CommandBuilder;
 import frc.robot.annotationprocessor.INamedCommand;
 import frc.robot.commands.autos.pieces.AutoShooterCommand;
 import frc.robot.commands.autos.pieces.DriveForwardCommand;
@@ -22,6 +25,27 @@ public class SingleSpeakerShotAutoCommand {
     @INamedCommand("single_speaker_shot_auto")
     public static Command createForPathPlanner(AutonomousInput autonomousInput) {
         return create(autonomousInput, SetPoints.INTAKE_AUTO_HALFWAY, 24);
+    }
+
+    public static enum StartPoint {
+        AMP_SIDE("AmpSideInit"),
+        FRONT("FrontInit"),
+        SOURCE_SIDE("SourceSideInit")
+        ;
+
+        public final String m_pathPlannerName;
+
+        StartPoint(String pathPlannerName) {
+            this.m_pathPlannerName = pathPlannerName;
+        }
+    }
+
+    public static CommandBuilder withStart(StartPoint start) {
+        return (AutonomousInput autonomousInput) -> {
+            return create(autonomousInput).andThen(
+                new PathPlannerAuto(start.m_pathPlannerName)
+            );
+        };
     }
 
     public static Command create(AutonomousInput autonomousInput) {
