@@ -1,0 +1,25 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3171869760109631,
+      "y": 5.5410316277334815
+    },
+    "rotation": 180.0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Front Drive Out"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Drive Out",
+  "choreoAuto": false
+}

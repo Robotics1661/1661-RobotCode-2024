@@ -29,6 +29,12 @@
               }
             ]
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot_speaker_far_auto_norev"
+          }
         }
       ]
     }

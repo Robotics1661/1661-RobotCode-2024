@@ -1,0 +1,25 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.6939426452992888,
+      "y": 4.430877663653311
+    },
+    "rotation": 119.95867052681933
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source-Side Drive Out"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Drive Out",
+  "choreoAuto": false
+}

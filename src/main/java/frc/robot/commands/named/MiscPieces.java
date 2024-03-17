@@ -19,20 +19,30 @@ public class MiscPieces {
     private static final double SPOOL_SPEED = -0.85;
     @INamedCommand("shoot_speaker_far_auto")
     public static Command shootSpeakerFarAuto(AutonomousInput autonomousInput) {
-        return shootSpeakerFar(autonomousInput, true);
+        return shootSpeakerFar(autonomousInput, true, SetPoints.FAR_SPEAKER_AUTO);
     }
 
     @INamedCommand("shoot_speaker_far_auto_norev")
     public static Command shootSpeakerFarAutoNoRev(AutonomousInput autonomousInput) {
-        return shootSpeakerFar(autonomousInput, false);
+        return shootSpeakerFar(autonomousInput, false, SetPoints.FAR_SPEAKER_AUTO);
     }
 
-    private static Command shootSpeakerFar(AutonomousInput autonomousInput, boolean reverse) {
+    @INamedCommand("shoot_speaker_far_auto_norev_amp_side")
+    public static Command shootSpeakerFarAutoNoRevAmpSide(AutonomousInput autonomousInput) {
+        return shootSpeakerFar(autonomousInput, false, SetPoints.FAR_SPEAKER_AUTO_AMP_SIDE);
+    }
+
+    @INamedCommand("shoot_speaker_far_auto_norev_source_side")
+    public static Command shootSpeakerFarAutoNoRevSourceSide(AutonomousInput autonomousInput) {
+        return shootSpeakerFar(autonomousInput, false, SetPoints.FAR_SPEAKER_AUTO_SOURCE_SIDE);
+    }
+
+    private static Command shootSpeakerFar(AutonomousInput autonomousInput, boolean reverse, SetPoints target) {
         return new SequentialCommandGroup(
             new ParallelCommandGroup(
                 new GoToSetPointCommand(
                     autonomousInput.fourBarSubsystem(),
-                    SetPoints.FAR_SPEAKER_AUTO,
+                    target,
                     EndBehaviour.Hold,
                     true
                 ),
@@ -46,12 +56,12 @@ public class MiscPieces {
                     )
                 )
             ),
-            new GoToSetPointCommand(
+            /*new GoToSetPointCommand( // not needed (already in hold)
                 autonomousInput.fourBarSubsystem(),
-                SetPoints.FAR_SPEAKER_AUTO,
+                target,
                 EndBehaviour.Hold,
                 true
-            ),
+            ),*/
             /*new InstantCommand(() -> {
                 autoDbg("SHOOTING NOW!");
             })*/

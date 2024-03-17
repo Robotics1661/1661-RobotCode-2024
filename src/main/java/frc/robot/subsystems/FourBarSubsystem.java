@@ -67,11 +67,12 @@ public class FourBarSubsystem extends SubsystemBase {
 
     private boolean initialized = false;
 
+    private double extraSetPointOffset = 0.0;
     private double activeBrakeRightTarget = Double.NaN;
     private boolean wasFollowingSetPoint = false;
     @SuppressWarnings("unused")
     private SetPoints lastSetPoint = SetPoints.ORIGIN;
-    private double lastRightTarget = SetPoints.ORIGIN.rightPosition();
+    private double lastRightTarget = SetPoints.ORIGIN.rightPosition(extraSetPointOffset);
     private boolean goFaster = false;
 
     private static final double MAX_VOLTAGE = 4.0;
@@ -80,8 +81,8 @@ public class FourBarSubsystem extends SubsystemBase {
     private final double RIGHT_HOMING_TARGET = -0.098876953125;
     private final double LEFT_HOMING_TARGET = rightEncoderPositionToLeftEncoderPosition(RIGHT_HOMING_TARGET);
 
-    private final double FORWARD_RIGHT_MOTOR_LIMIT = 88.17041015625; // TODO: apply SP_OFFSET
-    private final double BACKWARD_RIGHT_MOTOR_LIMIT = -77.0;
+    private final double FORWARD_RIGHT_MOTOR_LIMIT = 88.17041015625; // TO-DO: apply SP_OFFSET
+    private final double BACKWARD_RIGHT_MOTOR_LIMIT = -80.0;
 
     // assigning -BR to FR and -FR to BL is intentional, it needs to be swapped due to negative
     private final double FORWARD_LEFT_MOTOR_LIMIT = -BACKWARD_RIGHT_MOTOR_LIMIT;
@@ -217,10 +218,10 @@ public class FourBarSubsystem extends SubsystemBase {
 
         // setup following behavior
         // SEE NOTE ABOVE m_follower = new Follower(m_motorRight.getDeviceID(), true);
-        m_rightPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.rightPosition(), 0.0, false, 0.0, 0, true, false, false);
-        m_leftPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.leftPosition(), 0.0, false, 0.0, 0, true, false, false);
-        m_rightMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.rightPosition(), false, 0.0, 0, true, false, false);
-        m_leftMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.leftPosition(), false, 0.0, 0, true, false, false);
+        m_rightPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.rightPosition(extraSetPointOffset), 0.0, false, 0.0, 0, true, false, false);
+        m_leftPositionVoltageRequest = new PositionVoltage(SetPoints.ORIGIN.leftPosition(extraSetPointOffset), 0.0, false, 0.0, 0, true, false, false);
+        m_rightMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.rightPosition(extraSetPointOffset), false, 0.0, 0, true, false, false);
+        m_leftMotionMagicVoltageRequest = new MotionMagicVoltage(SetPoints.ORIGIN.leftPosition(extraSetPointOffset), false, 0.0, 0, true, false, false);
         
         //m_motorLeft.setControl(m_follower);
         m_motorLeft.setControl(m_leftDutyCycleRequest);
@@ -275,7 +276,7 @@ public class FourBarSubsystem extends SubsystemBase {
     public void setTargetPoint(SetPoints target, boolean faster) {
         goFaster = faster;
         lastSetPoint = target;
-        setTargetPointInternal(target.leftPosition(), target.rightPosition(), true);
+        setTargetPointInternal(target.leftPosition(extraSetPointOffset), target.rightPosition(extraSetPointOffset), true);
         SmartDashboard.putString("FourBar/Mode", "SetPoint: "+target.name());
         activeBrakeRightTarget = Double.NaN;
     }
@@ -394,8 +395,8 @@ public class FourBarSubsystem extends SubsystemBase {
         m_motorRight.setPosition(0.0);
         m_motorLeft.setPosition(0.0);
         
-        m_rightPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.rightPosition());
-        m_leftPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.leftPosition());
+        m_rightPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.rightPosition(extraSetPointOffset));
+        m_leftPositionVoltageRequest.withSlot(0).withPosition(SetPoints.ORIGIN.leftPosition(extraSetPointOffset));
         initialized = true;
         //m_orchestra.stop();
         System.out.println("[4bar] Zeroed motors to home position!");
@@ -573,28 +574,46 @@ public class FourBarSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("FourBar/Initialized", initialized);
     }
 
-    private static double SP_OFFSET = -1.2; // -1.2
+    private static final double SP_OFFSET = -1.6; // -1.2
+
+    public void increaseSetPointOffset() {
+        extraSetPointOffset += 0.1;
+    }
+
+    public void decreaseSetPointOffset() {
+        extraSetPointOffset -= 0.1;
+    }
 
     public static enum SetPoints {
         ORIGIN(0.0),
-        INTAKE(-69.25 + SP_OFFSET),
+        INTAKE(-73.25 + SP_OFFSET),
         INTAKE_AUTO_HALFWAY(-60.5 + SP_OFFSET),
         AMP(82.74),//81.36),//85.0),
-        SPEAKER(85.5 + SP_OFFSET),
+        SPEAKER(85.5 + SP_OFFSET, true),
         SPEAKER_AUTO(85.5 + SP_OFFSET),
-        FAR_SPEAKER_AUTO(79.10)
+        FAR_SPEAKER_AUTO(78.35),
+        FAR_SPEAKER_AUTO_AMP_SIDE(78.35),
+        FAR_SPEAKER_AUTO_SOURCE_SIDE(78.35)
         ;
+
         private final double rightPosition;
+        private final boolean enableExtraOffset;
+
         private SetPoints(double rightPosition) {
+            this(rightPosition, false);
+        }
+
+        private SetPoints(double rightPosition, boolean enableExtraOffset) {
             this.rightPosition = rightPosition;
+            this.enableExtraOffset = enableExtraOffset;
         }
 
-        public double rightPosition() {
-            return rightPosition;
+        public double rightPosition(double extraOffset) {
+            return rightPosition + (enableExtraOffset ? extraOffset : 0);
         }
 
-        public double leftPosition() {
-            return -rightPosition;
+        public double leftPosition(double extraOffset) {
+            return -rightPosition(extraOffset);
         }
     }
 }

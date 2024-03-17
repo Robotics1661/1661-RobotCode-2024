@@ -2,10 +2,15 @@
   "robotWidth": 0.7874,
   "robotLength": 0.7874,
   "holonomicMode": true,
-  "pathFolders": [],
+  "pathFolders": [
+    "Drive Out",
+    "Sided Far Shots"
+  ],
   "autoFolders": [
+    "Drive Out",
     "Far Shots",
     "Init",
+    "Sided Far Shots",
     "Speaker Shots"
   ],
   "defaultMaxVel": 3.0,

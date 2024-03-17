@@ -1,0 +1,25 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.6647280672971791,
+      "y": 6.67066197715326
+    },
+    "rotation": -120.4655449193126
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp-Side Drive Out"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Drive Out",
+  "choreoAuto": false
+}

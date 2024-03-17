@@ -46,4 +46,25 @@ public class FourBarPieces {
             true
         );
     }
+
+    @INamedCommand("fourbar_far_shot_amp_side")
+    public static GoToSetPointCommand goToSpeakerFarShotAmpSide(AutonomousInput autonomousInput) {
+        return new GoToSetPointCommand(
+            autonomousInput.fourBarSubsystem(),
+            SetPoints.FAR_SPEAKER_AUTO_AMP_SIDE,
+            EndBehaviour.Hold,
+            true
+        );
+    }
+
+    @INamedCommand("fourbar_far_shot_source_side")
+    public static GoToSetPointCommand goToSpeakerFarShotSourceSide(AutonomousInput autonomousInput) {
+        return new GoToSetPointCommand(
+            autonomousInput.fourBarSubsystem(),
+            SetPoints.FAR_SPEAKER_AUTO_SOURCE_SIDE,
+            EndBehaviour.Hold,
+            4.0,
+            true
+        );
+    }
 }

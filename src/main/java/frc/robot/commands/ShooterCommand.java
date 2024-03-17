@@ -22,7 +22,7 @@ public class ShooterCommand extends Command {
 
     private final double AMP_SPEED = 0.54;//0.52;
 
-    private double currentShooterTargetSpeed = 0.85;
+    private double currentShooterTargetSpeed = 0.88;//0.85;
     private double currentSpeed = 0;
     private Mode mode;
     private boolean scheduledIntake = false;

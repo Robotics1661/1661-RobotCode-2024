@@ -139,18 +139,18 @@ public class JoyXboxWrapper {
         return pov == 180 || pov == 180+45 || pov == 180-45;
     }
 
-    public boolean getTestShooterSpeedIncrease() {
+    public boolean getFourBarOffsetIncrease() {
         if (isSoftDisabled()) return false;
         int pov = m_xbox.map(XboxController::getPOV).orElse(-1);
         if (pov == -1) return false;
-        return pov == 0;
+        return pov == 0 || pov == 45 || pov == 315;
     }
 
-    public boolean getTestShooterSpeedDecrease() {
+    public boolean getFourBarOffsetDecrease() {
         if (isSoftDisabled()) return false;
         int pov = m_xbox.map(XboxController::getPOV).orElse(-1);
         if (pov == -1) return false;
-        return pov == 180;
+        return pov == 180 || pov == 180+45 || pov == 180-45;
     }
 
     public boolean getAmpShot() {

@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.6549898746298092,
-      "y": 6.680400169815762
+      "x": 0.6842044526319189,
+      "y": 4.440615856320681
     },
-    "rotation": -120.96375653207348
+    "rotation": 119.10473162741869
   },
   "command": {
     "type": "sequential",
@@ -18,13 +18,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Amp Side To Far Shot"
+                  "pathName": "Source Sided Far Shot"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "fourbar_far_shot"
+                  "name": "fourbar_far_shot_source_side"
                 }
               }
             ]
@@ -33,12 +33,12 @@
         {
           "type": "named",
           "data": {
-            "name": "shoot_speaker_far_auto_norev"
+            "name": "shoot_speaker_far_auto_norev_source_side"
           }
         }
       ]
     }
   },
-  "folder": "Far Shots",
+  "folder": "Sided Far Shots",
   "choreoAuto": false
 }

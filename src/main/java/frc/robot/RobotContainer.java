@@ -124,7 +124,9 @@ public class RobotContainer {
       m_combined_controller::getFourBarIntake,
       m_combined_controller::getFourBarAmp,
       m_combined_controller::getFourBarSpeaker,
-      m_combined_controller::getFourBarFarSpeaker
+      m_combined_controller::getFourBarFarSpeaker,
+      m_combined_controller::getFourBarOffsetIncrease,
+      m_combined_controller::getFourBarOffsetDecrease
     )); // */
 
     new Trigger(m_combined_controller::getFourBarInitialize)

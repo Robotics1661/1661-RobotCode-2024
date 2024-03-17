@@ -16,13 +16,17 @@ public class FourBarCommand extends Command {
     private final BooleanSupplier m_goAmpSupplier;
     private final BooleanSupplier m_goSpeakerSupplier;
     private final BooleanSupplier m_goFarSpeakerSupplier;
+    private final BooleanSupplier m_increaseOffsetSupplier;
+    private final BooleanSupplier m_decreaseOffsetSupplier;
     private boolean stopped = false;
+    private boolean offsetChangePressed = false;
 
     public FourBarCommand(
         FourBarSubsystem fourBarSubsystem, DoubleSupplier speedSupplier,
         BooleanSupplier goOriginSupplier, BooleanSupplier goIntakeSupplier,
         BooleanSupplier goAmpSupplier, BooleanSupplier goSpeakerSupplier,
-        BooleanSupplier goFarSpeakerSupplier
+        BooleanSupplier goFarSpeakerSupplier,
+        BooleanSupplier increaseOffsetSupplier, BooleanSupplier decreaseOffsetSupplier
         ) {
         this.m_fourBarSubsystem = fourBarSubsystem;
         this.m_speedSupplier = speedSupplier;
@@ -31,6 +35,8 @@ public class FourBarCommand extends Command {
         this.m_goAmpSupplier = goAmpSupplier;
         this.m_goSpeakerSupplier = goSpeakerSupplier;
         this.m_goFarSpeakerSupplier = goFarSpeakerSupplier;
+        this.m_increaseOffsetSupplier = increaseOffsetSupplier;
+        this.m_decreaseOffsetSupplier = decreaseOffsetSupplier;
 
         addRequirements(m_fourBarSubsystem);
     }
@@ -45,6 +51,20 @@ public class FourBarCommand extends Command {
             if (!stopped) {
                 m_fourBarSubsystem.activeStop();
                 stopped = true;
+            }
+
+            if (m_increaseOffsetSupplier.getAsBoolean()) {
+                if (!offsetChangePressed) {
+                    offsetChangePressed = true;
+                    m_fourBarSubsystem.increaseSetPointOffset();
+                }
+            } else if (m_decreaseOffsetSupplier.getAsBoolean()) {
+                if (!offsetChangePressed) {
+                    offsetChangePressed = true;
+                    m_fourBarSubsystem.decreaseSetPointOffset();
+                }
+            } else {
+                offsetChangePressed = false;
             }
 
             if (m_goOriginSupplier.getAsBoolean()) {

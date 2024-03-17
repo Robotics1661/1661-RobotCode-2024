@@ -11,6 +11,7 @@ import frc.robot.commands.autos.pieces.AutoShooterCommand;
 import frc.robot.commands.autos.pieces.DriveForwardCommand;
 import frc.robot.commands.autos.pieces.GoToSetPointCommand;
 import frc.robot.commands.autos.pieces.GoToSetPointCommand.EndBehaviour;
+import frc.robot.commands.autos.pieces.InitPieces.StartPoint;
 import frc.robot.commands.autos.pieces.SeedDrivetrainGyroCommand;
 import frc.robot.commands.autos.pieces.SpoolUpShooterCommand;
 import frc.robot.commands.autos.pieces.TimedDelayCommand;
@@ -25,19 +26,6 @@ public class SingleSpeakerShotAutoCommand {
     @INamedCommand("single_speaker_shot_auto")
     public static Command createForPathPlanner(AutonomousInput autonomousInput) {
         return create(autonomousInput, SetPoints.INTAKE_AUTO_HALFWAY, 24);
-    }
-
-    public static enum StartPoint {
-        AMP_SIDE("AmpSideInit"),
-        FRONT("FrontInit"),
-        SOURCE_SIDE("SourceSideInit")
-        ;
-
-        public final String m_pathPlannerName;
-
-        StartPoint(String pathPlannerName) {
-            this.m_pathPlannerName = pathPlannerName;
-        }
     }
 
     public static CommandBuilder withStart(StartPoint start) {
