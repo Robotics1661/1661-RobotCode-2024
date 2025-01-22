@@ -70,6 +70,8 @@ public class Robot extends TimedRobot {
     try {
       CommandScheduler.getInstance().run();
     } catch (AutoEndException e) {
+      System.err.println("AutoEndException thrown!");
+      e.printStackTrace();
       if (m_autonomousCommand != null) {
         m_autonomousCommand.cancel();
       }

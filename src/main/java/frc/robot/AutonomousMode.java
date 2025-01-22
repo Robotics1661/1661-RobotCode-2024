@@ -41,8 +41,11 @@ public enum AutonomousMode {
     TEST(AssistedFarShotCommand::create, "test"),
 
     // These start aligned on speaker & then drive to middle note & shoot
+    // Not yet confirmed to work (but it should)
     AMP_SIDE_START_FAR_SHOT("Amp-Start Far Shot", "Start on amp side of speaker, move to middle note and shoot"),
+    // Confirmed to work
     FRONT_START_FAR_SHOT("Front-Start Far Shot", "Start in front of speaker, move to middle note and shoot"),
+    // Not yet confirmed to work (but it should)
     SOURCE_SIDE_START_FAR_SHOT("Source-Start Far Shot", "Start on source side of speaker, move to middle note and shoot"),
 
     // These start aligned on speaker & then drive back on own side
@@ -51,7 +54,9 @@ public enum AutonomousMode {
     SOURCE_SIDE_DRIVE_OUT("Source-Side Drive Out", "Start on source side, drive out"),
 
     // These start aligned on speaker & then drive back on own side & shoot
+    // Not (yet) confirmed to work
     AMP_SIDED_FAR_SHOT("Amp-Sided Far Shot", "Start on amp side of speaker, move back & shoot far"),
+    // Confirmed to work
     SOURCE_SIDED_FAR_SHOT("Source-Sided Far Shot", "Start on source side of speaker, move back & shoot far")
     ;
     private final CommandBuilder builder;

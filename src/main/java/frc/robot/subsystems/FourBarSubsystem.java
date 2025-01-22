@@ -592,8 +592,8 @@ public class FourBarSubsystem extends SubsystemBase {
         SPEAKER(85.5 + SP_OFFSET, true),
         SPEAKER_AUTO(85.5 + SP_OFFSET),
         FAR_SPEAKER_AUTO(78.35),
-        FAR_SPEAKER_AUTO_AMP_SIDE(78.35),
-        FAR_SPEAKER_AUTO_SOURCE_SIDE(78.35)
+        FAR_SPEAKER_AUTO_AMP_SIDE(77.7),
+        FAR_SPEAKER_AUTO_SOURCE_SIDE(77.7)
         ;
 
         private final double rightPosition;
