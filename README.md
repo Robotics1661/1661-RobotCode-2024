@@ -16,7 +16,7 @@
 [![WPILib: 2024](https://img.shields.io/badge/WPILib-2024-003366?style=for-the-badge)](https://docs.wpilib.org/)
 ![Phoenix: 5 + 6](https://img.shields.io/badge/Phoenix-5%20%2B%206-0B6BCB?style=for-the-badge)
 ![PathPlanner: autos](https://img.shields.io/badge/PathPlanner-autos-7B2CBF?style=for-the-badge)
-[![License](https://img.shields.io/github/license/Robotics1661/1661-RobotCode-2024?style=for-the-badge&color=d40000)](LICENSE)
+[![License](https://img.shields.io/github/license/Robotics1661/1661-RobotCode-2024?style=for-the-badge&color=d40000&cachebust=20261116)](LICENSE)
 
 </div>
 
